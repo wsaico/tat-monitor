@@ -439,16 +439,8 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
             )}
 
             <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, opacity: 0.8 }}>
-              <span style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>T. EN TIERRA:</span>
-              <span style={{ fontSize: 11, fontWeight: 900, color: "#fff", fontVariantNumeric: "tabular-nums" }}>{fmtMSS(tigSeconds)}</span>
-            </div>
-          </div>
-
-          {/* R: Local Time Clock */}
-          <div style={{ paddingLeft: 12 }}>
-            <div style={{ fontSize: 8, fontWeight: 800, color: "rgba(255,255,255,0.4)", marginBottom: 4, letterSpacing: 1 }}>HORA LOCAL PERÚ</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-              <span style={{ fontSize: 24, fontWeight: 900, color: "#fff", fontVariantNumeric: "tabular-nums" }}>{currentTime || '--:--:--'}</span>
+              <span style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>HORA LOCAL PERÚ:</span>
+              <span style={{ fontSize: 11, fontWeight: 900, color: "#fff", fontVariantNumeric: "tabular-nums" }}>{currentTime || '--:--:--'}</span>
             </div>
           </div>
 
@@ -458,8 +450,7 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
               <div style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>PROY. ENTREGA</div>
               <div style={{ fontSize: 18, fontWeight: 900, color: "#fff" }}>{entRow?.real || '--:--'}</div>
             </div>
-            <div style={{ width: "100%", height: 1, background: "rgba(255,255,255,0.05)" }} />
-            <div>
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 8 }}>
               <div style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>PROY. PUSHBACK</div>
               <div style={{ fontSize: 18, fontWeight: 900, color: "#fff" }}>{pbRow?.real || '--:--'}</div>
             </div>
