@@ -118,7 +118,7 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
     };
     if (isEarly) return {
       type: "ok",
-      msg: `Avión adelantado ${fmt(-cmDelta)}. ¡No esperes al ETD! Objetivo: Entrega anticipada ${entRow.real} y salida a las ${pbRow.real}.`,
+      msg: `Avión adelantado ${fmt(-cmDelta)}. ¡No esperes al ETD! Objetivo: Entrega anticipada ${entRow.real} y Push back a las ${pbRow.real}.`,
     };
     return {
       type: "late",
