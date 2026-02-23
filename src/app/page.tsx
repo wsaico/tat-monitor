@@ -70,6 +70,36 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
   const [ov, setOv] = useState<string | null>(null);
   const capRef = useRef<HTMLDivElement>(null);
 
+  const loadH2C = () => new Promise<void>((res, rej) => {
+    if ((window as any).html2canvas) return res();
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    s.onload = () => res(); s.onerror = rej; document.head.appendChild(s);
+  });
+
+  const capture = useCallback(async () => {
+    try {
+      await loadH2C();
+      const c = await (window as any).html2canvas(capRef.current, { backgroundColor: "#F4F6F9", scale: 2.5, useCORS: true, logging: false });
+      setOv(c.toDataURL("image/png"));
+    }
+    catch (e) { console.error(e); }
+  }, []);
+
+  const doShare = useCallback(async () => {
+    if (!ov) return;
+    try {
+      const b = await (await fetch(ov)).blob();
+      const f = new File([b], "TAT.png", { type: "image/png" });
+      if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: `TAT ${airlineKey}` }); return; }
+    }
+    catch (_) { }
+    const a = document.createElement("a");
+    a.href = ov;
+    a.download = `TAT_${airlineKey}.png`;
+    a.click();
+  }, [ov, airlineKey]);
+
   if (!al) return null;
   const th = al.theme;
 
@@ -100,35 +130,6 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
   const SBg = msgData.type === "ok" ? "rgba(74,222,128,0.1)" : "rgba(239,68,68,0.1)";
   const SBr = msgData.type === "ok" ? "rgba(74,222,128,0.22)" : "rgba(239,68,68,0.22)";
 
-  const loadH2C = () => new Promise<void>((res, rej) => {
-    if ((window as any).html2canvas) return res();
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-    s.onload = () => res(); s.onerror = rej; document.head.appendChild(s);
-  });
-
-  const capture = useCallback(async () => {
-    try {
-      await loadH2C();
-      const c = await (window as any).html2canvas(capRef.current, { backgroundColor: "#F4F6F9", scale: 2.5, useCORS: true, logging: false });
-      setOv(c.toDataURL("image/png"));
-    }
-    catch (e) { console.error(e); }
-  }, []);
-
-  const doShare = useCallback(async () => {
-    if (!ov) return;
-    try {
-      const b = await (await fetch(ov)).blob();
-      const f = new File([b], "TAT.png", { type: "image/png" });
-      if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: `TAT ${airlineKey}` }); return; }
-    }
-    catch (_) { }
-    const a = document.createElement("a");
-    a.href = ov;
-    a.download = `TAT_${airlineKey}.png`;
-    a.click();
-  }, [ov, airlineKey]);
 
   return (
     <div className="A">
@@ -288,7 +289,7 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
       {/* OVERLAY for shared image */}
       {ov && (
         <div className="OV" onClick={() => setOv(null)}>
-          <img src={ov} className="OV-img" unselectable="on" />
+          <img src={ov} className="OV-img" unselectable="on" alt="Comprobante TAT" />
           <div className="OV-row" onClick={e => e.stopPropagation()}>
             <button className="OV-shr" style={{ background: th.accent, color: "#052E16" }} onClick={doShare}>{Ic.share} Compartir</button>
             <button className="OV-cls" onClick={() => setOv(null)}>Cerrar</button>
