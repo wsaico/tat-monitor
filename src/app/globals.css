@@ -189,12 +189,78 @@ body {
 /* APP UI */
 .A {
     width: 100%;
-    margin: 0;
+    max-width: 450px;
+    margin: 0 auto;
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
     background: #F4F6F9;
     color: #1a1a1a;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+/* DARK MODE */
+.A--dark {
+    background: #060A12 !important;
+    color: #fff !important;
+}
+
+.A--dark .N {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.A--dark .TH {
+    background: #0F172A !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.A--dark .TH span {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.A--dark .ML {
+    background: #060A12 !important;
+}
+
+.A--dark .MR {
+    background: #0F172A !important;
+    border-left-color: rgba(255, 255, 255, 0.1);
+}
+
+.A--dark .MR-lbl {
+    color: #CBD5E1 !important;
+}
+
+.A--dark .MR-t {
+    color: #fff !important;
+}
+
+.A--dark .MR-t--dim {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.A--dark .MR-ent,
+.A--dark .MR-pb {
+    background: #1E293B !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.A--dark .B {
+    background: #0F172A !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.A--dark .B-btn {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.A--dark .F {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.A--dark .F a {
+    color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .N {
@@ -378,14 +444,21 @@ body {
 }
 
 .H-card {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 8px 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 12px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+}
+
+.H-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
 }
 
 .H-card--accent {
@@ -577,6 +650,81 @@ body {
     font-family: inherit;
     font-size: 11px;
     font-weight: 700;
+}
+
+/* DARK MODE OVERRIDES */
+.A--dark .N-nm,
+.A--dark .N-cd {
+    color: #fff !important;
+}
+
+.A--dark nav.N {
+    background: #0F172A !important;
+}
+
+.A--dark .H-msg {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #E2E8F0 !important;
+}
+
+.A--dark .H-inp-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.A--dark .H-inp-lbl {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.A--dark .H-inp-sub {
+    color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.A--dark .H-cv {
+    color: #fff !important;
+}
+
+.A--dark .HIST-card {
+    background: #0F172A !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+}
+
+.A--dark .HIST-card div {
+    color: #CBD5E1 !important;
+}
+
+.A--dark .CFG-modal {
+    background: #0F172A !important;
+    color: #fff !important;
+}
+
+.A--dark .CFG-btn {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.A--dark .CFG-btn--act {
+    border-color: #4ADE80 !important;
+    color: #4ADE80 !important;
+    background: rgba(74, 222, 128, 0.1) !important;
+}
+
+/* Adicionales para Historial */
+.A--dark div[style*="background: #fff"] {
+    background: #0F172A !important;
+}
+
+.A--dark div[style*="background: #F4F6F9"] {
+    background: #060A12 !important;
+}
+
+.A--dark span[style*="color: #334155"] {
+    color: #CBD5E1 !important;
+}
+
+.A--dark span[style*="color: #1E293B"] {
+    color: #FFF !important;
 }
 
 .B-fab {

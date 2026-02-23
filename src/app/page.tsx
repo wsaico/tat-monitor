@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { useTATLogic, AL, isValidTime, pad2, fmt, sub } from '@/hooks/useTATLogic';
+import type { Metadata, Viewport } from "next";
+import { useTATLogic, AL, isValidTime, pad2, fmt, sub, fmtMSS } from '@/hooks/useTATLogic';
 
 /* ─── ICONS (Ported from TATCalculator.jsx) ─────────────────────── */
 const Ic = {
@@ -17,6 +18,45 @@ const Ic = {
   warn: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
   heart: <svg width="11" height="11" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>,
   edit: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>,
+  sun: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>,
+  moon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>,
+};
+/* ─── NOTIFICATION UTILS ────────────────────────────────────────── */
+async function setupNotifications() {
+  if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) return false;
+  let perm = Notification.permission;
+  if (perm === "default") perm = await Notification.requestPermission();
+  if (perm !== "granted") return false;
+  try {
+    const reg = await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+    return true;
+  } catch (e) {
+    console.warn("SW no disponible:", e);
+    return false;
+  }
+}
+
+async function scheduleAlerts(alerts: any[]) {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    reg.active?.postMessage({ type: "SCHEDULE_ALERTS", alerts });
+  } catch (e) { }
+}
+
+async function clearAlerts() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    reg.active?.postMessage({ type: "CLEAR_ALERTS" });
+  } catch (e) { }
+}
+
+const hhmm2ts = (hhmm: string) => {
+  if (!hhmm) return 0;
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.getTime();
 };
 
 /* ─── TEXT TIME INPUT Component (Ported) ────────────────────────── */
@@ -64,11 +104,60 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
     etdItin, setEtdItin,
     cmReal, setCmReal,
     cmPlan, cmDelta,
-    rows, resetData, al
+    rows, resetData, al,
+    alertAt, setAlertAt, dark, setDark,
+    flightNum, setFlightNum,
+    groundTime, deliveryCountdown,
+    tigSeconds, pbSeconds,
+    deliveryTarget, setDeliveryTarget
   } = useTATLogic(airlineKey);
 
+  const [view, setView] = useState<"calc" | "hist">("calc");
+  const [notifOk, setNotifOk] = useState(false);
+  const [showCfg, setShowCfg] = useState(false);
   const [ov, setOv] = useState<string | null>(null);
   const capRef = useRef<HTMLDivElement>(null);
+
+  // Setup notificaciones al montar
+  useEffect(() => {
+    setupNotifications().then(ok => setNotifOk(ok));
+  }, []);
+
+  // Programar alertas via Service Worker
+  useEffect(() => {
+    if (!notifOk || !al) return;
+    const entRow = rows.find(r => r.isEnt);
+    const pbRow = rows.find(r => r.isPb);
+    if (!entRow || !pbRow) return;
+
+    const flightLabel = `${al?.code || ""} | ${al?.name || ""}`;
+    const alerts = [
+      {
+        id: "pre-pb",
+        title: `🚀 ${alertAt} min para Push Back`,
+        body: `${flightLabel} — PB a las ${pbRow.real}.`,
+        fireAt: hhmm2ts(pbRow.real) - alertAt * 60 * 1000,
+        tag: "tat-pre-pb",
+      },
+      {
+        id: "ent",
+        title: `📋 ¡Hora de entregar el vuelo!`,
+        body: `${flightLabel} — Entrega a las ${entRow.real}.`,
+        fireAt: hhmm2ts(entRow.real),
+        tag: "tat-ent",
+      },
+      {
+        id: "pb",
+        title: `🛫 Push Back — ${pbRow.real}`,
+        body: `${flightLabel} — ETD: ${etdItin}.`,
+        fireAt: hhmm2ts(pbRow.real),
+        tag: "tat-pb",
+      },
+    ].filter(a => a.fireAt > Date.now());
+
+    scheduleAlerts(alerts);
+    return () => { clearAlerts(); };
+  }, [notifOk, al, rows, alertAt, etdItin]);
 
   const loadH2C = () => new Promise<void>((res, rej) => {
     if ((window as any).html2canvas) return res();
@@ -100,15 +189,90 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
     a.click();
   }, [ov, airlineKey]);
 
-  if (!al) return null;
-  const th = al.theme;
+  const [history, setHistory] = useState<any[]>([]);
+  const [savedFlights, setSavedFlights] = useState<any[]>([]);
+
+  // Load history and saved flights on mount
+  useEffect(() => {
+    const sh = localStorage.getItem(`tat_hist_${airlineKey}`);
+    if (sh) try { setHistory(JSON.parse(sh)); } catch (e) { }
+    const sf = localStorage.getItem(`tat_saved_flights_${airlineKey}`);
+    if (sf) try { setSavedFlights(JSON.parse(sf)); } catch (e) { }
+  }, [airlineKey]);
+
+  const saveFlight = useCallback(() => {
+    if (!flightNum || !etdItin) return;
+    const newSaved = [{ flight: flightNum.toUpperCase(), etd: etdItin }, ...savedFlights.filter(f => f.flight !== flightNum.toUpperCase())].slice(0, 10);
+    setSavedFlights(newSaved);
+    localStorage.setItem(`tat_saved_flights_${airlineKey}`, JSON.stringify(newSaved));
+  }, [flightNum, etdItin, savedFlights, airlineKey]);
+
+  const saveToHistory = useCallback(() => {
+    const entRow = rows.find(r => r.isEnt);
+    const pbRow = rows.find(r => r.isPb);
+    const newEntry = {
+      id: Date.now(),
+      date: new Date().toLocaleDateString("es-PE"),
+      time: new Date().toLocaleTimeString("es-PE", { hour: '2-digit', minute: '2-digit' }),
+      airline: airlineKey,
+      flightNum,
+      etd: etdItin,
+      cmPlan,
+      cmReal,
+      pbPlan: pbRow?.plan || "--:--",
+      pbReal: pbRow?.real || "--:--",
+      delta: cmDelta,
+    };
+    const updated = [newEntry, ...history].slice(0, 30);
+    setHistory(updated);
+    localStorage.setItem(`tat_hist_${airlineKey}`, JSON.stringify(updated));
+    saveFlight();
+  }, [airlineKey, etdItin, cmPlan, cmReal, cmDelta, rows, history, flightNum, saveFlight]);
+
+  const exportPDF = () => {
+    if (!al) return;
+    const lates = history.filter(h => h.delta > 0).length;
+    const ontime = history.filter(h => h.delta <= 0).length;
+    const html = `
+      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title>
+      <style>body{font-family:sans-serif;padding:32px;color:#1E293B;}h1{font-size:22px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px;text-align:left;}td{padding:8px;border-bottom:1px solid #F1F5F9;}</style>
+      </head><body>
+      <h1>✈️ Reporte de Turno — ${al.name}</h1>
+      <p>A tiempo: ${ontime} | Demorados: ${lates}</p>
+      <table><thead><tr><th>Fecha</th><th>ETD</th><th>CM Real</th><th>Estado</th></tr></thead>
+      <tbody>${history.map(h => `<tr><td>${h.date} ${h.time}</td><td>${h.etd}</td><td>${h.cmReal}</td><td>${h.delta > 0 ? `+${fmt(h.delta)}` : 'OK'}</td></tr>`).join("")}</tbody>
+      </table></body></html>`;
+    const w = window.open("", "_blank");
+    if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500); }
+  };
+
+  const isEarly = cmDelta < 0;
+  const isExact = cmDelta === 0;
 
   const entRow = rows.find(r => r.isEnt);
   const pbRow = rows.find(r => r.isPb);
 
-  // Estado de mensaje inteligente
-  const isEarly = cmDelta < 0;
-  const isExact = cmDelta === 0;
+  const buildWA = useCallback(() => {
+    if (!al) return "";
+    const status = isEarly ? `✅ ADELANTADO ${fmt(-cmDelta)}` : cmDelta > 0 ? `⚠️ DEMORADO +${fmt(cmDelta)}` : `✅ EN TIEMPO`;
+    return [
+      `✈️ *${al.code} ${flightNum} | TAT Calculator*`,
+      `📅 ${new Date().toLocaleDateString("es-PE")} ${new Date().toLocaleTimeString("es-PE", { hour: '2-digit', minute: '2-digit' })}`,
+      ``,
+      `🕐 ETD Itinerario: *${etdItin}*`,
+      `🛬 CM Real: *${cmReal}* (TIG: ${groundTime} min)`,
+      `📋 Entrega vuelo: *${entRow?.real || "--:--"}* (Plan: ${entRow?.plan || "--:--"})`,
+      `🚀 Push Back: *${pbRow?.real || "--:--"}* (Plan: ${pbRow?.plan || "--:--"})`,
+      ``,
+      status,
+      `_TAT Monitor Pro_`,
+    ].join("\n");
+  }, [al, etdItin, cmReal, groundTime, entRow?.plan, entRow?.real, pbRow?.plan, pbRow?.real, isEarly, cmDelta, flightNum]);
+
+  const sendWA = () => window.open(`https://wa.me/?text=${encodeURIComponent(buildWA())}`, "_blank");
+
+  if (!al) return null;
+  const th = al.theme;
 
   const msgData = (() => {
     if (!pbRow || !entRow) return { type: "ok", msg: "" };
@@ -130,9 +294,38 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
   const SBg = msgData.type === "ok" ? "rgba(74,222,128,0.1)" : "rgba(239,68,68,0.1)";
   const SBr = msgData.type === "ok" ? "rgba(74,222,128,0.22)" : "rgba(239,68,68,0.22)";
 
+  if (view === "hist") return (
+    <div className={`A ${dark ? 'A--dark' : ''}`}>
+      <nav className="N" style={{ background: th.nav }}>
+        <div className="N-l">
+          <button style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 20 }} onClick={() => setView("calc")}>←</button>
+          <span className="N-nm">Historial del turno</span>
+        </div>
+        <div className="N-r">
+          <button className="N-out" onClick={exportPDF} style={{ background: 'rgba(255,255,255,0.1)', padding: '6px 12px', fontSize: 10, borderRadius: 6, fontWeight: 800 }}>PDF</button>
+        </div>
+      </nav>
+      <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+        {history.length === 0 && <div style={{ textAlign: "center", padding: 40, color: "#94A3B8" }}>No hay vuelos registrados</div>}
+        {history.map(h => (
+          <div key={h.id} className="HIST-card" style={{ background: "#fff", borderRadius: 12, padding: 14, marginBottom: 12, border: "1px solid #E2E8F0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 800 }}>{h.airline}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: h.delta > 0 ? "#EF4444" : "#4ADE80" }}>{h.delta > 0 ? `+${fmt(h.delta)}` : "OK"}</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              <div><div style={{ fontSize: 8, color: "#94A3B8" }}>ETD</div><div style={{ fontSize: 12, fontWeight: 800 }}>{h.etd}</div></div>
+              <div><div style={{ fontSize: 8, color: "#94A3B8" }}>CM</div><div style={{ fontSize: 12, fontWeight: 800 }}>{h.cmReal}</div></div>
+              <div><div style={{ fontSize: 8, color: "#94A3B8" }}>PB</div><div style={{ fontSize: 12, fontWeight: 800 }}>{h.pbReal}</div></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="A">
+    <div className={`A ${dark ? 'A--dark' : ''}`}>
       {/* NAV */}
       <nav className="N" style={{ background: th.nav }}>
         <div className="N-l">
@@ -140,10 +333,61 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
           <span className="N-nm">TAT Calculator</span>
         </div>
         <div className="N-r">
-          <span className="N-cd" style={{ color: th.accent }}>{al.code}</span>
-          <button className="N-out" onClick={onLogout}>{Ic.logout}</button>
+          <button className="N-out" onClick={() => setDark(!dark)} style={{ color: dark ? "#FACC15" : "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.08)" }}>
+            {dark ? Ic.sun : Ic.moon}
+          </button>
+          <div style={{ display: "flex", alignItems: "center", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "0 10px", height: 32 }}>
+            <span style={{ fontSize: 9, fontWeight: 900, color: th.accent, marginRight: 6, opacity: 0.8 }}>FLT</span>
+            <input
+              value={flightNum}
+              onChange={e => setFlightNum(e.target.value.toUpperCase())}
+              placeholder="----"
+              style={{ background: "none", border: "none", color: "#fff", width: 45, fontSize: 13, fontWeight: 800, outline: "none", textAlign: "left" }}
+            />
+          </div>
+          <button className="N-out" onClick={() => setShowCfg(true)} style={{ color: th.accent, background: "rgba(255,255,255,0.08)" }}>{Ic.edit}</button>
+          <button className="N-out" onClick={() => setView("hist")} style={{ background: "rgba(255,255,255,0.08)" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+          </button>
+          <button className="N-out" onClick={onLogout} style={{ background: "rgba(239,68,68,0.1)", color: "#EF4444" }}>{Ic.logout}</button>
         </div>
       </nav>
+
+      {/* CONFIG MODAL */}
+      {showCfg && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div className="CFG-modal" style={{ background: "#fff", width: "100%", maxWidth: 320, borderRadius: 20, padding: 24, position: "relative" }}>
+            <button onClick={() => setShowCfg(false)} style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", fontSize: 18, color: "#94A3B8" }}>✕</button>
+            <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 20 }}>Configuración</h3>
+
+            <label style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 8, display: "block" }}>Aviso previo Pushback</label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6, marginBottom: 24 }}>
+              {[3, 5, 10, 15].map(m => (
+                <button key={m} onClick={() => setAlertAt(m)} className={`CFG-btn ${alertAt === m ? "CFG-btn--act" : ""}`} style={{ padding: "8px 0", borderRadius: 10, border: `1.5px solid ${alertAt === m ? th.accent : "#E2E8F0"}`, background: alertAt === m ? `${th.accent}12` : "none", color: alertAt === m ? th.accent : "#64748B", fontWeight: 700, fontSize: 12 }}>{m}m</button>
+              ))}
+            </div>
+
+            {savedFlights.length > 0 && (
+              <>
+                <label style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 8, display: "block" }}>Vuelos Recientes</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                  {savedFlights.map((f, i) => (
+                    <button key={i} onClick={() => { setFlightNum(f.flight); setEtdItin(f.etd); setShowCfg(false); }} style={{ background: "rgba(0,0,0,0.05)", border: "none", padding: "8px", borderRadius: 8, textAlign: "left" }}>
+                      <div style={{ fontSize: 10, fontWeight: 800 }}>{f.flight}</div>
+                      <div style={{ fontSize: 9, color: "#64748B" }}>ETD: {f.etd}</div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div style={{ marginTop: 24, padding: 12, background: notifOk ? "#F0FDF4" : "#FEF2F2", borderRadius: 12, border: "1px solid", borderColor: notifOk ? "#BBF7D0" : "#FECACA" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: notifOk ? "#166534" : "#991B1B" }}>{notifOk ? "Notificaciones Activas" : "Notificaciones Desactivadas"}</div>
+              {!notifOk && <button onClick={() => setupNotifications().then(ok => setNotifOk(ok))} style={{ marginTop: 6, width: "100%", padding: "6px 0", borderRadius: 8, background: "#EF4444", color: "#fff", border: "none", fontWeight: 700, fontSize: 10 }}>Habilitar</button>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HERO */}
       <div className="H" style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})` }}>
@@ -152,47 +396,70 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
           <span className="H-msg-t">{msgData.msg}</span>
         </div>
 
-        <div className="H-inp-row">
-          <div className="H-inp-card H-inp-card--primary" onClick={() => (document.querySelector('.H-inp-card--primary input') as any)?.focus()}>
-            <div className="H-inp-top">
-              <span className="H-inp-lbl">CM REAL Operativo</span>
-              <span className="H-edit">{Ic.edit}</span>
-            </div>
-            <TI value={cmReal} onChange={setCmReal} color="#fff" size={32} />
-            <span className="H-inp-sub">CORTE DE MOTOR</span>
+        {/* TOP INPUTS ROW */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+          <div className="H-inp-card H-inp-card--secondary" style={{ borderColor: "rgba(255,255,255,0.15)", padding: "10px 8px" }} onClick={() => (document.querySelector('.h-etd-in input') as any)?.focus()}>
+            <div className="H-inp-top"><span className="H-inp-lbl" style={{ fontSize: 7 }}>ETD Itinerario</span></div>
+            <div className="h-etd-in"><TI value={etdItin} onChange={setEtdItin} color={th.accent} size={18} /></div>
+          </div>
+          <div className="H-inp-card H-inp-card--secondary" style={{ background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.2)", padding: "10px 8px" }} onClick={() => (document.querySelector('.h-cm-in input') as any)?.focus()}>
+            <div className="H-inp-top"><span className="H-inp-lbl" style={{ fontSize: 7, color: "#fff" }}>CM REAL Operativo</span></div>
+            <div className="h-cm-in"><TI value={cmReal} onChange={setCmReal} color="#fff" size={18} /></div>
           </div>
         </div>
 
-        <div className="H-sub-row">
-          <div className="H-inp-card H-inp-card--secondary"
-            style={{ borderColor: `${th.accent}30` }}
-            onClick={() => (document.querySelector('.H-inp-card--secondary input') as any)?.focus()}>
-            <div className="H-inp-top">
-              <span className="H-inp-lbl" style={{ color: `${th.accent}80` }}>ETD. Itin.</span>
-              <span className="H-edit" style={{ color: `${th.accent}60` }}>{Ic.edit}</span>
+        {/* OPERATION COCKPIT */}
+        <div style={{
+          background: "rgba(0,0,0,0.25)",
+          borderRadius: 20,
+          padding: 16,
+          border: "1px solid rgba(255,255,255,0.1)",
+          display: "grid",
+          gridTemplateColumns: "1.2fr 1fr",
+          gap: 12,
+          alignItems: "center"
+        }}>
+          {/* L: Priority Counter */}
+          <div style={{ borderRight: "1px solid rgba(255,255,255,0.1)", paddingRight: 12 }}>
+            <div style={{ marginBottom: 4 }}>
+              <span style={{ fontSize: 8, fontWeight: 900, color: (pbSeconds !== null && pbSeconds < 0) ? '#FF4D4D' : th.accent, letterSpacing: 1.5 }}>P/ PUSHBACK</span>
             </div>
-            <TI value={etdItin} onChange={setEtdItin} color={th.accent} size={20} />
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span style={{ fontSize: (pbSeconds !== null && Math.abs(pbSeconds) >= 6000) ? 32 : 44, fontWeight: 900, color: (pbSeconds !== null && pbSeconds < 0) ? '#FF4D4D' : "#fff", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+                {pbSeconds !== null ? fmtMSS(pbSeconds) : '--:--'}
+              </span>
+            </div>
+            {(pbSeconds !== null && pbSeconds < 0) && (
+              <div style={{ background: "#FF4D4D", color: "#fff", fontSize: 8, fontWeight: 900, padding: "2px 6px", borderRadius: 4, display: "inline-block", marginTop: 4 }}>DELAY</div>
+            )}
+
+            <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, opacity: 0.8 }}>
+              <span style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>T. EN TIERRA:</span>
+              <span style={{ fontSize: 11, fontWeight: 900, color: "#fff", fontVariantNumeric: "tabular-nums" }}>{fmtMSS(tigSeconds)}</span>
+            </div>
           </div>
 
-          <div className="H-grid">
-            <div className="H-card">
-              <span className="H-cl" style={{ color: th.accent }}>PROY. ENTREGA</span>
-              <span className="H-cv" style={{ color: th.accent }}>{entRow?.real || '--:--'}</span>
+          {/* R: Milestones */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>PROY. ENTREGA</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff" }}>{entRow?.real || '--:--'}</div>
             </div>
-            <div className="H-card">
-              <span className="H-cl" style={{ color: th.accent }}>PROY. PUSHBACK</span>
-              <span className="H-cv" style={{ color: th.accent }}>{pbRow?.real || '--:--'}</span>
+            <div style={{ width: "100%", height: 1, background: "rgba(255,255,255,0.05)" }} />
+            <div>
+              <div style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>PROY. PUSHBACK</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff" }}>{pbRow?.real || '--:--'}</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* TABLE HEADER */}
-      <div className="TH">
+      <div className="TH" style={{ marginTop: 10 }}>
         <span>HITOS OPERATIVOS</span>
         <span style={{ textAlign: "center", color: th.accent }}>PROYECCIÓN</span>
         <span style={{ textAlign: "center" }} className="TH-dim">ITINERARIO</span>
-        <span style={{ textAlign: "center" }}>DIF</span>
+        <span style={{ textAlign: "center" }}>{al?.code === 'LATAM' ? 'GANTT' : 'DIF'}</span>
       </div>
 
       {/* ROWS */}
@@ -213,7 +480,7 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
               </div>
               <span className="MR-t" style={{ color: late ? "#EF4444" : early ? "#15803D" : "#1E293B", fontWeight: 800 }}>{r.real}</span>
               <span className="MR-t MR-t--dim">{r.plan}</span>
-              <span className="MR-t" style={{ color: dc, fontWeight: 700 }}>{ds}</span>
+              <span className="MR-t" style={{ color: al?.code === 'LATAM' ? '#94A3B8' : dc, fontWeight: 700 }}>{al?.code === 'LATAM' ? (r as any).gantt : ds}</span>
             </div>
           );
         })}
@@ -226,15 +493,21 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
       </footer>
 
       {/* BOTTOM */}
-      <div className="B">
-        <button className="B-btn" onClick={resetData}>
-          {Ic.reset}<span>Reiniciar</span>
+      <div className="B" style={{ padding: "10px 16px 30px" }}>
+        <button className="B-btn" onClick={resetData} style={{ flex: 1 }}>
+          <div style={{ background: "rgba(148,163,184,0.1)", padding: 10, borderRadius: 12, marginBottom: 4 }}>{Ic.reset}</div>
+          <span>Reiniciar</span>
         </button>
-        <button className="B-fab" style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})` }} onClick={capture}>
-          {Ic.cam}
-        </button>
-        <button className="B-btn" style={{ color: th.accent }} onClick={capture}>
-          {Ic.share}<span>Compartir</span>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "0 20px" }}>
+          <button className="B-fab" style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, width: 64, height: 64, marginTop: -24, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.3)" }} onClick={() => { saveToHistory(); capture(); }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+          </button>
+        </div>
+        <button className="B-btn" style={{ color: th.accent, flex: 1 }} onClick={sendWA}>
+          <div style={{ background: `${th.accent}15`, padding: 10, borderRadius: 12, marginBottom: 4 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 0 0 0-3.48-8.413Z" /></svg>
+          </div>
+          <span>WhatsApp</span>
         </button>
       </div>
 
@@ -243,7 +516,7 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
         <div style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})`, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
             <div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name} · TAT Calculator</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name} {flightNum} · TAT Calculator</div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
                 {new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}
               </div>
@@ -267,7 +540,7 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
         </div>
         <div style={{ background: "#F4F6F9", padding: "10px 12px 12px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 65px 60px 45px", gap: 4, padding: "0 6px 4px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: "7px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "#94A3B8" }}>
-            <span>HITO</span><span style={{ textAlign: "center" }}>PROYEC.</span><span style={{ textAlign: "center", opacity: 0.5 }}>ITIN.</span><span style={{ textAlign: "center" }}>DIF</span>
+            <span>HITO</span><span style={{ textAlign: "center" }}>PROYEC.</span><span style={{ textAlign: "center", opacity: 0.5 }}>ITIN.</span><span style={{ textAlign: "center" }}>{al?.code === 'LATAM' ? 'GANTT' : 'DIF'}</span>
           </div>
           {rows.map((r, i) => {
             const late = r.diff > 0, early = r.diff < 0;
@@ -278,7 +551,7 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
                 <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, fontWeight: 600, color: "#334155" }}>{r.label}</span>
                 <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 800, color: late ? "#EF4444" : early ? "#15803D" : "#1E293B", textAlign: "center" }}>{r.real}</span>
                 <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 600, color: "#94A3B8", textAlign: "center", opacity: 0.6 }}>{r.plan}</span>
-                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: dc, textAlign: "center" }}>{ds}</span>
+                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: al?.code === 'LATAM' ? '#94A3B8' : dc, textAlign: "center" }}>{al?.code === 'LATAM' ? (r as any).gantt : ds}</span>
               </div>
             );
           })}
@@ -307,19 +580,21 @@ function Login({ onLogin }: { onLogin: (ak: string) => void }) {
   const [busy, setBusy] = useState(false);
 
   const go = () => {
-    if (busy || !pass.trim()) return;
-    setErr(""); setBusy(true);
+    if (busy) return;
+    setBusy(true);
+    setErr("");
     setTimeout(() => {
-      const k = pass.trim().toUpperCase();
-      if (k === "SKY" || k === "LATAM") { onLogin(k); return; }
-      setBusy(false); setErr("Código no reconocido.");
-    }, 500);
+      const p = pass.toUpperCase().trim();
+      if (AL[p]) onLogin(p); else setErr("Código inválido");
+      setBusy(false);
+    }, 800);
   };
 
   return (
     <div className="L">
       <div className="L-grid" /><div className="L-g1" /><div className="L-g2" />
-      <div className="L-wrap">
+
+      <div className="L-wrap" style={{ maxWidth: 450, margin: '0 auto' }}>
         <div className="L-mid">
           <h1 className="L-h1">TAT<br />Monitor</h1>
           <div style={{ height: 40 }} />

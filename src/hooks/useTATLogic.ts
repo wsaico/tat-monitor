@@ -27,6 +27,15 @@ export const nowHHMM = () => {
     return `${pad2(n.getHours())}:${pad2(n.getMinutes())}`;
 };
 
+export const fmtMSS = (s: number, forceSign = false) => {
+    const isNeg = s < 0;
+    const abs = Math.abs(s);
+    const m = Math.floor(abs / 60);
+    const sec = abs % 60;
+    const sign = isNeg ? '-' : (forceSign ? '+' : '');
+    return `${sign}${pad2(m)}:${pad2(sec)}`;
+};
+
 /* ─── AIRLINE CONFIGS ───────────────────────────────────────────── */
 export interface MilestoneConfig {
     label: string;
@@ -79,20 +88,21 @@ export const AL: Record<string, AirlineConfig> = {
         theme: { nav: "#1A1A2E", gradA: "#1A1A2E", gradB: "#0F3460", accent: "#E2B14A" },
         tat: 35,
         ms: [
-            { label: "Corte Motor", planOff: 0, isFirst: true },
-            { label: "Apertura Puertas", planOff: 2 },
-            { label: "Fin Desembarque", planOff: 10 },
-            { label: "Inicio Limpieza", planOff: 10 },
-            { label: "Fin Limpieza", planOff: 14 },
-            { label: "Pre-Embarque", planOff: 8 },
-            { label: "Embarque Sala", planOff: 12 },
-            { label: "Búsqueda Equipaje", planOff: 21 },
-            { label: "Entrega de Vuelo", planOff: 23, isEnt: true },
-            { label: "Último Pasajero", planOff: 25 },
-            { label: "Acomodación PAX", planOff: 28 },
-            { label: "Cierre de Puertas", planOff: 28 },
-            { label: "Encendido Motor", planOff: 28 },
-            { label: "Push Back", planOff: 35, isPb: true },
+            { label: "AVIÓN EN PEA", planOff: -2 },
+            { label: "COLOCAR EL CORTE DE MOTOR REAL", planOff: 0, isFirst: true },
+            { label: "AP E INICIO DESEMBARQUE", planOff: 2 },
+            { label: "FIN DESEMBARQUE", planOff: 10 },
+            { label: "INICIO LIMPIEZA", planOff: 10 },
+            { label: "FIN LIMPIEZA", planOff: 14 },
+            { label: "PRE-EMBARQUE", planOff: 8 },
+            { label: "EMBARQUE SALA", planOff: 12 },
+            { label: "BÚSQUEDA EQUIPAJE", planOff: 21 },
+            { label: "ENTREGA DE VUELO (LLAMADA A CTA)", planOff: 23, isEnt: true },
+            { label: "LLEGADA DEL ÚLTIMO PAX AL AVIÓN", planOff: 25 },
+            { label: "ACOMODACIÓN PASAJEROS", planOff: 28 },
+            { label: "CIERRE PUERTAS Y CB", planOff: 28 },
+            { label: "ENCIENDE MOTOR", planOff: 28 },
+            { label: "PUSH BACK", planOff: 35, isPb: true },
         ],
     },
 };
@@ -104,7 +114,31 @@ export const useTATLogic = (airlineKey: string | null) => {
 
     const [etdItin, setEtdItin] = useState('');
     const [cmReal, setCmReal] = useState('');
+    const [flightNum, setFlightNum] = useState('');
     const [isHydrated, setIsHydrated] = useState(false);
+
+    // Real-time metrics
+    // Real-time metrics
+    const [groundTime, setGroundTime] = useState(0);
+    const [deliveryCountdown, setDeliveryCountdown] = useState<number | null>(null);
+    const [tigSeconds, setTigSeconds] = useState(0);
+    const [pbSeconds, setPbSeconds] = useState<number | null>(null);
+    const [deliveryTarget, setDeliveryTarget] = useState(45);
+
+    const cmPlan = al ? addMins(etdItin, -al.tat) : '';
+    const cmDelta = (al && etdItin && cmReal) ? sub(cmPlan, cmReal) : 0;
+
+    const rows = al ? al.ms.map(m => {
+        const plan = addMins(cmPlan, m.planOff);
+        const real = addMins(cmReal, m.planOff);
+        const diff = sub(plan, real);
+
+        // Gantt offset is (planOff - tat)
+        const go = m.planOff - al.tat;
+        const gantt = (m.label === "AVIÓN EN PEA") ? "-" : (go === 0 ? "0" : String(go));
+
+        return { ...m, plan, real, diff, gantt };
+    }) : [];
 
     // Initial state setup
     useEffect(() => {
@@ -117,6 +151,10 @@ export const useTATLogic = (airlineKey: string | null) => {
                 if (data.airline === airlineKey) {
                     setEtdItin(data.etdItin || '');
                     setCmReal(data.cmReal || '');
+                    setFlightNum(data.flightNum || '');
+                    setAlertAt(data.alertAt ?? 5);
+                    setDark(!!data.dark);
+                    setDeliveryTarget(data.deliveryTarget ?? 45);
                     setIsHydrated(true);
                     return;
                 }
@@ -133,15 +171,73 @@ export const useTATLogic = (airlineKey: string | null) => {
         setIsHydrated(true);
     }, [airlineKey, al]);
 
+    const [alertAt, setAlertAt] = useState(5);
+    const [dark, setDark] = useState(false);
+
     // Persistence
     useEffect(() => {
         if (!isHydrated || !airlineKey) return;
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
             airline: airlineKey,
             etdItin,
-            cmReal
+            cmReal,
+            flightNum,
+            alertAt,
+            dark,
+            deliveryTarget
         }));
-    }, [etdItin, cmReal, airlineKey, isHydrated]);
+    }, [etdItin, cmReal, flightNum, airlineKey, isHydrated, alertAt, dark, deliveryTarget]);
+
+    // Update real-time metrics every 10 seconds
+    useEffect(() => {
+        if (!cmReal || !al) {
+            setGroundTime(0);
+            setDeliveryCountdown(null);
+            return;
+        }
+
+        const update = () => {
+            const now = new Date();
+
+            const getTodayTime = (hhmm: string) => {
+                const [h, m] = hhmm.split(":").map(Number);
+                const d = new Date(now);
+                d.setHours(h, m, 0, 0);
+                d.setSeconds(0, 0);
+                return d;
+            };
+
+            const cmDate = getTodayTime(cmReal);
+
+            if (cmDate.getTime() - now.getTime() > 12 * 3600000) {
+                cmDate.setDate(cmDate.getDate() - 1);
+            }
+            else if (now.getTime() - cmDate.getTime() > 20 * 3600000) {
+                cmDate.setDate(cmDate.getDate() + 1);
+            }
+
+            const diffSecs = Math.floor((now.getTime() - cmDate.getTime()) / 1000);
+            const ts = diffSecs >= 0 ? diffSecs : 0;
+            setTigSeconds(ts);
+            setGroundTime(Math.floor(ts / 60));
+
+            const pbRow = rows.find(r => r.isPb);
+            if (pbRow && pbRow.real) {
+                const pbDate = getTodayTime(pbRow.real);
+                if (pbDate.getTime() > cmDate.getTime() + 24 * 3600000) pbDate.setDate(pbDate.getDate() - 1);
+                if (pbDate.getTime() < cmDate.getTime() - 24 * 3600000) pbDate.setDate(pbDate.getDate() + 1);
+                if (pbDate.getTime() < cmDate.getTime()) pbDate.setDate(pbDate.getDate() + 1);
+
+                const cdSecs = Math.floor((pbDate.getTime() - now.getTime()) / 1000);
+                setPbSeconds(cdSecs);
+                setDeliveryCountdown(Math.floor(cdSecs / 60));
+            }
+        };
+
+        update();
+        const timer = setInterval(update, 1000);
+        return () => clearInterval(timer);
+    }, [cmReal, rows, al]);
 
     const resetData = useCallback(() => {
         if (!al) return;
@@ -152,16 +248,6 @@ export const useTATLogic = (airlineKey: string | null) => {
         setCmReal(defCM);
     }, [al]);
 
-    const cmPlan = al ? addMins(etdItin, -al.tat) : '';
-    const cmDelta = (al && etdItin && cmReal) ? sub(cmPlan, cmReal) : 0;
-
-    const rows = al ? al.ms.map(m => {
-        const plan = addMins(cmPlan, m.planOff);
-        const real = addMins(cmReal, m.planOff);
-        const diff = sub(plan, real);
-        return { ...m, plan, real, diff };
-    }) : [];
-
     return {
         etdItin,
         setEtdItin,
@@ -171,6 +257,18 @@ export const useTATLogic = (airlineKey: string | null) => {
         cmDelta,
         rows,
         resetData,
-        al
+        alertAt,
+        setAlertAt,
+        dark,
+        setDark,
+        al,
+        flightNum,
+        setFlightNum,
+        groundTime,
+        deliveryCountdown,
+        tigSeconds,
+        pbSeconds,
+        deliveryTarget,
+        setDeliveryTarget
     };
 };
