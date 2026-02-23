@@ -442,10 +442,14 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
               <span style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>HORA LOCAL PERÚ:</span>
               <span style={{ fontSize: 11, fontWeight: 900, color: "#fff", fontVariantNumeric: "tabular-nums" }}>{currentTime || '--:--:--'}</span>
             </div>
+            <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 6, opacity: 0.6 }}>
+              <span style={{ fontSize: 7, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>T. TIERRA:</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>{fmtMSS(tigSeconds)}</span>
+            </div>
           </div>
 
           {/* R: Milestones */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingLeft: 12 }}>
             <div>
               <div style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>PROY. ENTREGA</div>
               <div style={{ fontSize: 18, fontWeight: 900, color: "#fff" }}>{entRow?.real || '--:--'}</div>

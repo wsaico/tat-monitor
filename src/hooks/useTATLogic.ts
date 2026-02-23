@@ -189,17 +189,23 @@ export const useTATLogic = (airlineKey: string | null) => {
         }));
     }, [etdItin, cmReal, flightNum, airlineKey, isHydrated, alertAt, dark, deliveryTarget]);
 
-    // Update real-time metrics every 10 seconds
+    // Update real-time metrics every second
     useEffect(() => {
-        if (!cmReal || !al) {
+        if (!al || !isValidTime(cmReal)) {
             setGroundTime(0);
+            setTigSeconds(0);
+            setPbSeconds(null);
             setDeliveryCountdown(null);
-            return;
+            // Still update clock even if CM is not set
+            const tc = setInterval(() => {
+                setCurrentTime(new Date().toLocaleTimeString("en-GB", { hour12: false }));
+            }, 1000);
+            setCurrentTime(new Date().toLocaleTimeString("en-GB", { hour12: false }));
+            return () => clearInterval(tc);
         }
 
         const update = () => {
             const now = new Date();
-
             const getTodayTime = (hhmm: string) => {
                 const [h, m] = hhmm.split(":").map(Number);
                 const d = new Date(now);
@@ -209,18 +215,16 @@ export const useTATLogic = (airlineKey: string | null) => {
             };
 
             const cmDate = getTodayTime(cmReal);
-
             if (cmDate.getTime() - now.getTime() > 12 * 3600000) {
                 cmDate.setDate(cmDate.getDate() - 1);
-            }
-            else if (now.getTime() - cmDate.getTime() > 20 * 3600000) {
+            } else if (now.getTime() - cmDate.getTime() > 20 * 3600000) {
                 cmDate.setDate(cmDate.getDate() + 1);
             }
 
             const diffSecs = Math.floor((now.getTime() - cmDate.getTime()) / 1000);
-            const ts = diffSecs >= 0 ? diffSecs : 0;
+            const ts = diffSecs >= 0 ? diffSecs : diffSecs; // Allow negative if CM is in future
             setTigSeconds(ts);
-            setGroundTime(Math.floor(ts / 60));
+            setGroundTime(Math.floor(Math.abs(ts) / 60));
 
             const pbRow = rows.find(r => r.isPb);
             if (pbRow && pbRow.real) {
