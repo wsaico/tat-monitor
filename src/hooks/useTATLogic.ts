@@ -123,6 +123,7 @@ export const useTATLogic = (airlineKey: string | null) => {
     const [deliveryCountdown, setDeliveryCountdown] = useState<number | null>(null);
     const [tigSeconds, setTigSeconds] = useState(0);
     const [pbSeconds, setPbSeconds] = useState<number | null>(null);
+    const [currentTime, setCurrentTime] = useState('');
     const [deliveryTarget, setDeliveryTarget] = useState(45);
 
     const cmPlan = al ? addMins(etdItin, -al.tat) : '';
@@ -232,6 +233,7 @@ export const useTATLogic = (airlineKey: string | null) => {
                 setPbSeconds(cdSecs);
                 setDeliveryCountdown(Math.floor(cdSecs / 60));
             }
+            setCurrentTime(now.toLocaleTimeString("en-GB", { hour12: false }));
         };
 
         update();
@@ -268,6 +270,7 @@ export const useTATLogic = (airlineKey: string | null) => {
         deliveryCountdown,
         tigSeconds,
         pbSeconds,
+        currentTime,
         deliveryTarget,
         setDeliveryTarget
     };
