@@ -422,11 +422,15 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
           {/* L: Priority Counter */}
           <div style={{ borderRight: "1px solid rgba(255,255,255,0.1)", paddingRight: 12 }}>
             <div style={{ marginBottom: 4 }}>
-              <span style={{ fontSize: 8, fontWeight: 900, color: (pbSeconds !== null && pbSeconds < 0) ? '#FF4D4D' : th.accent, letterSpacing: 1.5 }}>P/ PUSHBACK</span>
+              <span style={{ fontSize: 8, fontWeight: 900, color: (pbSeconds !== null && pbSeconds < 0) ? '#FF4D4D' : th.accent, letterSpacing: 1.5 }}>
+                {al?.code === 'LATAM' ? 'GANTT P/ PUSHBACK' : 'P/ PUSHBACK'}
+              </span>
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
               <span style={{ fontSize: (pbSeconds !== null && Math.abs(pbSeconds) >= 6000) ? 32 : 44, fontWeight: 900, color: (pbSeconds !== null && pbSeconds < 0) ? '#FF4D4D' : "#fff", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
-                {pbSeconds !== null ? fmtMSS(pbSeconds) : '--:--'}
+                {pbSeconds !== null
+                  ? (al?.code === 'LATAM' ? fmtMSS(-pbSeconds, true) : fmtMSS(pbSeconds))
+                  : '--:--'}
               </span>
             </div>
             {(pbSeconds !== null && pbSeconds < 0) && (

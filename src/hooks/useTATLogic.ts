@@ -27,12 +27,12 @@ export const nowHHMM = () => {
     return `${pad2(n.getHours())}:${pad2(n.getMinutes())}`;
 };
 
-export const fmtMSS = (s: number, forceSign = false) => {
+export const fmtMSS = (s: number, forcePlus = false) => {
     const isNeg = s < 0;
     const abs = Math.abs(s);
     const m = Math.floor(abs / 60);
     const sec = abs % 60;
-    const sign = isNeg ? '-' : (forceSign ? '+' : '');
+    const sign = isNeg ? '-' : (forcePlus ? '+' : '');
     return `${sign}${pad2(m)}:${pad2(sec)}`;
 };
 
