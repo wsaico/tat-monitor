@@ -164,8 +164,8 @@ export const useTATLogic = (airlineKey: string | null) => {
         }
 
         const now = nowHHMM();
-        const defETD = addMins(now, 40);
-        const defCM = addMins(defETD, -al.tat);
+        const defETD = addMins(now, al.tat);
+        const defCM = now;
         setEtdItin(defETD);
         setCmReal(defCM);
         setIsHydrated(true);
@@ -242,8 +242,8 @@ export const useTATLogic = (airlineKey: string | null) => {
     const resetData = useCallback(() => {
         if (!al) return;
         const now = nowHHMM();
-        const defETD = addMins(now, 40);
-        const defCM = addMins(defETD, -al.tat);
+        const defETD = addMins(now, al.tat);
+        const defCM = now;
         setEtdItin(defETD);
         setCmReal(defCM);
     }, [al]);

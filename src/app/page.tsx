@@ -459,11 +459,24 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
       </div>
 
       {/* TABLE HEADER */}
-      <div className="TH" style={{ marginTop: 10 }}>
+      <div className="TH" style={{
+        marginTop: 10,
+        gridTemplateColumns: al?.code === 'LATAM' ? "1fr 45px 65px 65px" : "1.2fr 65px 65px 45px"
+      }}>
         <span>HITOS OPERATIVOS</span>
-        <span style={{ textAlign: "center", color: th.accent }}>PROYECCIÓN</span>
-        <span style={{ textAlign: "center" }} className="TH-dim">ITINERARIO</span>
-        <span style={{ textAlign: "center" }}>{al?.code === 'LATAM' ? 'GANTT' : 'DIF'}</span>
+        {al?.code === 'LATAM' ? (
+          <>
+            <span style={{ textAlign: "center" }}>GANTT</span>
+            <span style={{ textAlign: "center" }} className="TH-dim">ITINERARIO</span>
+            <span style={{ textAlign: "center", color: th.accent }}>PROYECCIÓN</span>
+          </>
+        ) : (
+          <>
+            <span style={{ textAlign: "center", color: th.accent }}>PROYECCIÓN</span>
+            <span style={{ textAlign: "center" }} className="TH-dim">ITINERARIO</span>
+            <span style={{ textAlign: "center" }}>DIF</span>
+          </>
+        )}
       </div>
 
       {/* ROWS */}
@@ -482,9 +495,19 @@ function Calc({ airlineKey, onLogout }: { airlineKey: string, onLogout: () => vo
                 {(!r.isEnt && !r.isPb) && <span className="MR-dot" style={{ background: late ? "#EF4444" : early ? "#4ADE80" : "#CBD5E1" }} />}
                 <span className="MR-lbl">{r.label}</span>
               </div>
-              <span className="MR-t" style={{ color: late ? "#EF4444" : early ? "#15803D" : "#1E293B", fontWeight: 800 }}>{r.real}</span>
-              <span className="MR-t MR-t--dim">{r.plan}</span>
-              <span className="MR-t" style={{ color: al?.code === 'LATAM' ? '#94A3B8' : dc, fontWeight: 700 }}>{al?.code === 'LATAM' ? (r as any).gantt : ds}</span>
+              {al?.code === 'LATAM' ? (
+                <>
+                  <span className="MR-t" style={{ color: '#94A3B8', fontWeight: 700 }}>{(r as any).gantt}</span>
+                  <span className="MR-t MR-t--dim">{r.plan}</span>
+                  <span className="MR-t" style={{ color: late ? "#EF4444" : early ? "#15803D" : "#1E293B", fontWeight: 800 }}>{r.real}</span>
+                </>
+              ) : (
+                <>
+                  <span className="MR-t" style={{ color: late ? "#EF4444" : early ? "#15803D" : "#1E293B", fontWeight: 800 }}>{r.real}</span>
+                  <span className="MR-t MR-t--dim">{r.plan}</span>
+                  <span className="MR-t" style={{ color: dc, fontWeight: 700 }}>{ds}</span>
+                </>
+              )}
             </div>
           );
         })}
