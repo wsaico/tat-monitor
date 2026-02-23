@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-/* ─── TIME UTILS (Ported from TATCalculator.jsx) ────────────────── */
+/* ─── TIME UTILS ───────────────────────────────────────────── */
 export const toMins = (t: string) => {
     const [h, m] = (t || "00:00").split(":").map(Number);
     return h * 60 + (m || 0);
@@ -45,17 +45,10 @@ export interface MilestoneConfig {
     isPb?: boolean;
 }
 
-export interface AirlineTheme {
-    nav: string;
-    gradA: string;
-    gradB: string;
-    accent: string;
-}
-
 export interface AirlineConfig {
     name: string;
     code: string;
-    theme: AirlineTheme;
+    theme: { nav: string; gradA: string; gradB: string; accent: string; };
     tat: number;
     ms: MilestoneConfig[];
 }
@@ -107,7 +100,7 @@ export const AL: Record<string, AirlineConfig> = {
     },
 };
 
-const STORAGE_KEY = 'tat_calculator_v2_state';
+const STORAGE_KEY = 'tat_calculator_v3_state';
 
 export const useTATLogic = (airlineKey: string | null) => {
     const al = airlineKey ? AL[airlineKey] : null;
@@ -116,15 +109,29 @@ export const useTATLogic = (airlineKey: string | null) => {
     const [cmReal, setCmReal] = useState('');
     const [flightNum, setFlightNum] = useState('');
     const [isHydrated, setIsHydrated] = useState(false);
-
-    // Real-time metrics
-    // Real-time metrics
-    const [groundTime, setGroundTime] = useState(0);
-    const [deliveryCountdown, setDeliveryCountdown] = useState<number | null>(null);
-    const [tigSeconds, setTigSeconds] = useState(0);
-    const [pbSeconds, setPbSeconds] = useState<number | null>(null);
-    const [currentTime, setCurrentTime] = useState('');
+    const [alertAt, setAlertAt] = useState(5);
+    const [dark, setDark] = useState(false);
     const [deliveryTarget, setDeliveryTarget] = useState(45);
+
+    // ─── TICK SYSTEM for Real-time reactivity ───
+    const [tick, setTick] = useState(0);
+    useEffect(() => {
+        const t = setInterval(() => setTick(s => s + 1), 1000);
+        return () => clearInterval(t);
+    }, []);
+
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString("en-GB", { hour12: false });
+
+    // Helper for today's time
+    const getTodayTime = (hhmm: string) => {
+        if (!isValidTime(hhmm)) return null;
+        const [h, m] = hhmm.split(":").map(Number);
+        const d = new Date(now);
+        d.setHours(h, m, 0, 0);
+        d.setSeconds(0, 0);
+        return d;
+    };
 
     const cmPlan = al ? addMins(etdItin, -al.tat) : '';
     const cmDelta = (al && etdItin && cmReal) ? sub(cmPlan, cmReal) : 0;
@@ -133,18 +140,39 @@ export const useTATLogic = (airlineKey: string | null) => {
         const plan = addMins(cmPlan, m.planOff);
         const real = addMins(cmReal, m.planOff);
         const diff = sub(plan, real);
-
-        // Gantt offset is (planOff - tat)
         const go = m.planOff - al.tat;
         const gantt = (m.label === "AVIÓN EN PEA") ? "-" : (go === 0 ? "0" : String(go));
-
         return { ...m, plan, real, diff, gantt };
     }) : [];
+
+    // ─── DERIVED METRICS (100% Reactive) ───
+    const cmDate = getTodayTime(cmReal);
+    let tigSeconds = 0;
+    if (cmDate) {
+        if (cmDate.getTime() - now.getTime() > 12 * 3600000) cmDate.setDate(cmDate.getDate() - 1);
+        else if (now.getTime() - cmDate.getTime() > 20 * 3600000) cmDate.setDate(cmDate.getDate() + 1);
+        tigSeconds = Math.floor((now.getTime() - cmDate.getTime()) / 1000);
+    }
+    const groundTime = Math.floor(Math.abs(tigSeconds) / 60);
+
+    const pbRow = rows.find(r => r.isPb);
+    let pbSeconds: number | null = null;
+    let deliveryCountdown: number | null = null;
+
+    if (cmDate && pbRow && pbRow.real) {
+        const pbDate = getTodayTime(pbRow.real);
+        if (pbDate) {
+            if (pbDate.getTime() > cmDate.getTime() + 24 * 3600000) pbDate.setDate(pbDate.getDate() - 1);
+            if (pbDate.getTime() < cmDate.getTime() - 24 * 3600000) pbDate.setDate(pbDate.getDate() + 1);
+            if (pbDate.getTime() < cmDate.getTime()) pbDate.setDate(pbDate.getDate() + 1);
+            pbSeconds = Math.floor((pbDate.getTime() - now.getTime()) / 1000);
+            deliveryCountdown = Math.floor(pbSeconds / 60);
+        }
+    }
 
     // Initial state setup
     useEffect(() => {
         if (!al) return;
-
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
             try {
@@ -163,17 +191,11 @@ export const useTATLogic = (airlineKey: string | null) => {
                 console.error('Failed to restore state', e);
             }
         }
-
-        const now = nowHHMM();
-        const defETD = addMins(now, al.tat);
-        const defCM = now;
-        setEtdItin(defETD);
-        setCmReal(defCM);
+        const nS = nowHHMM();
+        setEtdItin(addMins(nS, al.tat));
+        setCmReal(nS);
         setIsHydrated(true);
     }, [airlineKey, al]);
-
-    const [alertAt, setAlertAt] = useState(5);
-    const [dark, setDark] = useState(false);
 
     // Persistence
     useEffect(() => {
@@ -189,93 +211,25 @@ export const useTATLogic = (airlineKey: string | null) => {
         }));
     }, [etdItin, cmReal, flightNum, airlineKey, isHydrated, alertAt, dark, deliveryTarget]);
 
-    // Update real-time metrics every second
-    useEffect(() => {
-        if (!al || !isValidTime(cmReal)) {
-            setGroundTime(0);
-            setTigSeconds(0);
-            setPbSeconds(null);
-            setDeliveryCountdown(null);
-            // Still update clock even if CM is not set
-            const tc = setInterval(() => {
-                setCurrentTime(new Date().toLocaleTimeString("en-GB", { hour12: false }));
-            }, 1000);
-            setCurrentTime(new Date().toLocaleTimeString("en-GB", { hour12: false }));
-            return () => clearInterval(tc);
-        }
-
-        const update = () => {
-            const now = new Date();
-            const getTodayTime = (hhmm: string) => {
-                const [h, m] = hhmm.split(":").map(Number);
-                const d = new Date(now);
-                d.setHours(h, m, 0, 0);
-                d.setSeconds(0, 0);
-                return d;
-            };
-
-            const cmDate = getTodayTime(cmReal);
-            if (cmDate.getTime() - now.getTime() > 12 * 3600000) {
-                cmDate.setDate(cmDate.getDate() - 1);
-            } else if (now.getTime() - cmDate.getTime() > 20 * 3600000) {
-                cmDate.setDate(cmDate.getDate() + 1);
-            }
-
-            const diffSecs = Math.floor((now.getTime() - cmDate.getTime()) / 1000);
-            const ts = diffSecs >= 0 ? diffSecs : diffSecs; // Allow negative if CM is in future
-            setTigSeconds(ts);
-            setGroundTime(Math.floor(Math.abs(ts) / 60));
-
-            const pbRow = rows.find(r => r.isPb);
-            if (pbRow && pbRow.real) {
-                const pbDate = getTodayTime(pbRow.real);
-                if (pbDate.getTime() > cmDate.getTime() + 24 * 3600000) pbDate.setDate(pbDate.getDate() - 1);
-                if (pbDate.getTime() < cmDate.getTime() - 24 * 3600000) pbDate.setDate(pbDate.getDate() + 1);
-                if (pbDate.getTime() < cmDate.getTime()) pbDate.setDate(pbDate.getDate() + 1);
-
-                const cdSecs = Math.floor((pbDate.getTime() - now.getTime()) / 1000);
-                setPbSeconds(cdSecs);
-                setDeliveryCountdown(Math.floor(cdSecs / 60));
-            }
-            setCurrentTime(now.toLocaleTimeString("en-GB", { hour12: false }));
-        };
-
-        update();
-        const timer = setInterval(update, 1000);
-        return () => clearInterval(timer);
-    }, [cmReal, rows, al]);
-
     const resetData = useCallback(() => {
         if (!al) return;
-        const now = nowHHMM();
-        const defETD = addMins(now, al.tat);
-        const defCM = now;
-        setEtdItin(defETD);
-        setCmReal(defCM);
+        const nS = nowHHMM();
+        setEtdItin(addMins(nS, al.tat));
+        setCmReal(nS);
     }, [al]);
 
     return {
-        etdItin,
-        setEtdItin,
-        cmReal,
-        setCmReal,
-        cmPlan,
-        cmDelta,
-        rows,
-        resetData,
-        alertAt,
-        setAlertAt,
-        dark,
-        setDark,
+        etdItin, setEtdItin,
+        cmReal, setCmReal,
+        cmPlan, cmDelta,
+        rows, resetData,
+        alertAt, setAlertAt,
+        dark, setDark,
         al,
-        flightNum,
-        setFlightNum,
-        groundTime,
-        deliveryCountdown,
-        tigSeconds,
-        pbSeconds,
+        flightNum, setFlightNum,
+        groundTime, deliveryCountdown,
+        tigSeconds, pbSeconds,
         currentTime,
-        deliveryTarget,
-        setDeliveryTarget
+        deliveryTarget, setDeliveryTarget
     };
 };
