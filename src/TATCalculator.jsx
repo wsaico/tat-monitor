@@ -138,97 +138,7 @@ function getTatPhase(minsSinceCm, totalTat) {
   return { name: "Cierre & Entrega de Vuelo", color: "#F43F5E", pct };
 }
 
-/* ─── DIAGRAMA GANTT VISUAL OPERACIONAL ─────────────────────────── */
-function GanttChartVisual({ cmReal, totalTat = 35, accent = "#4ADE80", dark = true }) {
-  const nowMinsVal = toMins(nowHHMM());
-  const cmMins = toMins(cmReal);
-  const elapsed = nowMinsVal - cmMins;
-  const nowPct = Math.min(100, Math.max(0, (elapsed / totalTat) * 100));
-  const isOngoing = elapsed >= 0 && elapsed <= totalTat;
 
-  const blocks = [
-    { label: "Desembarque", start: 2, end: Math.min(10, Math.round(totalTat * 0.28)), color: "#38BDF8" },
-    { label: "Servicios", start: Math.round(totalTat * 0.28), end: Math.round(totalTat * 0.42), color: "#F59E0B" },
-    { label: "Embarque", start: Math.round(totalTat * 0.32), end: Math.round(totalTat * 0.82), color: "#818CF8" },
-    { label: "Cierre / PB", start: Math.round(totalTat * 0.80), end: totalTat, color: accent },
-  ];
-
-  return (
-    <div style={{ background: dark ? "rgba(15,23,42,0.65)" : "#FFFFFF", borderRadius: 12, border: `1px solid ${dark ? "#334155" : "#E2E8F0"}`, padding: "10px 12px", margin: "6px 12px 8px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase", color: dark ? "#94A3B8" : "#64748B", display: "flex", alignItems: "center", gap: 5 }}>
-          {Ic.chart} GANTT OPERACIONAL
-        </span>
-        <span style={{ fontSize: 9, fontWeight: 700, color: isOngoing ? "#EF4444" : dark ? "#64748B" : "#94A3B8" }}>
-          {isOngoing ? `EN CURSO: +${elapsed} MIN` : `DURACIÓN: ${totalTat} MIN`}
-        </span>
-      </div>
-
-      {/* Grid scale */}
-      <div style={{ position: "relative", width: "100%", height: 16, borderBottom: `1px dashed ${dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)"}`, marginBottom: 6, display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 700, color: dark ? "#64748B" : "#94A3B8", fontVariantNumeric: "tabular-nums" }}>
-        <span>0'</span>
-        <span>+{Math.round(totalTat * 0.25)}'</span>
-        <span>+{Math.round(totalTat * 0.5)}'</span>
-        <span>+{Math.round(totalTat * 0.75)}'</span>
-        <span>+{totalTat}'</span>
-      </div>
-
-      {/* Gantt Track Area */}
-      <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6, padding: "2px 0 4px" }}>
-        {/* NOW Line (cursor vertical) */}
-        {isOngoing && (
-          <div style={{
-            position: "absolute",
-            top: -20,
-            bottom: 0,
-            left: `${nowPct}%`,
-            width: 2,
-            background: "#EF4444",
-            zIndex: 10,
-            boxShadow: "0 0 8px #EF4444",
-            pointerEvents: "none",
-          }}>
-            <div style={{ position: "absolute", top: 0, left: -14, background: "#EF4444", color: "#fff", fontSize: 7, fontWeight: 800, padding: "1px 3px", borderRadius: 3, letterSpacing: "0.5px" }}>
-              NOW
-            </div>
-          </div>
-        )}
-
-        {blocks.map(b => {
-          const leftPct = (b.start / totalTat) * 100;
-          const widthPct = Math.max(10, ((b.end - b.start) / totalTat) * 100);
-          return (
-            <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 8, height: 18 }}>
-              <span style={{ width: 72, fontSize: 9, fontWeight: 700, color: dark ? "#CBD5E1" : "#475569", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {b.label}
-              </span>
-              <div style={{ flex: 1, position: "relative", height: 14, background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", borderRadius: 4, overflow: "hidden" }}>
-                <div style={{
-                  position: "absolute",
-                  left: `${leftPct}%`,
-                  width: `${widthPct}%`,
-                  top: 0,
-                  bottom: 0,
-                  background: b.color,
-                  borderRadius: 4,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 7.5,
-                  fontWeight: 800,
-                  color: "#0F172A",
-                  boxShadow: `0 1px 4px ${b.color}44`,
-                }}>
-                  {b.end - b.start}'
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 /* ─── TEXT TIME INPUT ────────────────────────────────────────────── */
 function TI({ value, onChange, color = "#fff", size = 24 }) {
@@ -1031,10 +941,6 @@ function Calc({ airlineKey, onLogout }) {
         </div>
       </div>
 
-      {/* Visual Gantt Chart (Visible solo en Modo Gantt) */}
-      {viewMode === "gantt" && (
-        <GanttChartVisual cmReal={cmReal} totalTat={al.tat} accent={th.accent} dark={dark} />
-      )}
 
       {/* TABLE HEADER */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 40px", gap: 4, padding: "6px 12px 4px", background: card, borderBottom: `1px solid ${bdr}`, position: "sticky", top: 0, zIndex: 5 }}>
@@ -1709,10 +1615,6 @@ function CalcDur({ airlineKey, onLogout }) {
         </div>
       </div>
 
-      {/* Visual Gantt Chart (Visible solo en Modo Gantt) */}
-      {viewMode === "gantt" && (
-        <GanttChartVisual cmReal={cmReal} totalTat={al.tat || 35} accent={th.accent} dark={dark} />
-      )}
 
       {/* ── TABLA: DURACIÓN | HORA | HITO (Carta Gantt) ── */}
       <div style={{ display: "grid", gridTemplateColumns: "52px 52px 1fr", gap: 4, padding: "8px 12px 6px", background: card, borderBottom: `1px solid ${bdr}`, position: "sticky", top: 0, zIndex: 5 }}>
