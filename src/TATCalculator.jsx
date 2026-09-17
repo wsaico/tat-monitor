@@ -1124,12 +1124,9 @@ function Calc({ airlineKey, onLogout }) {
         {/* Cabecera oficial con gradiente de aerolínea */}
         <div style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, padding: "16px 18px 14px", position: "relative" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ background: th.accent, color: "#080D1A", fontSize: 11, fontWeight: 900, padding: "2px 7px", borderRadius: 6, letterSpacing: "1px" }}>{al.code}</span>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{al.name}</div>
-                <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginTop: 2 }}>REPORTE DE OPERACIONES DE RAMPA</div>
-              </div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{al.name}</div>
+              <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginTop: 2 }}>REPORTE DE OPERACIONES DE RAMPA</div>
             </div>
             <div style={{ background: SBg, border: `1px solid ${SBr}`, borderRadius: 20, padding: "4px 10px", fontSize: 9, fontWeight: 800, color: SC, whiteSpace: "nowrap" }}>
               {isLate ? `DEMORA +${fmtDur(cmDelta)}` : isEarly ? `ADELANTO −${fmtDur(-cmDelta)}` : "A TIEMPO"}
@@ -1803,20 +1800,17 @@ function CalcDur({ airlineKey, onLogout }) {
         {/* Cabecera oficial con gradiente de aerolínea */}
         <div style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, padding: "16px 18px 14px", position: "relative" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ background: th.accent, color: "#080D1A", fontSize: 11, fontWeight: 900, padding: "2px 7px", borderRadius: 6, letterSpacing: "1px" }}>{al.code}</span>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{al.name}</div>
-                <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginTop: 2 }}>REPORTE DE OPERACIONES DE RAMPA</div>
-              </div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{al.name}</div>
+              <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginTop: 2 }}>REPORTE DE OPERACIONES DE RAMPA</div>
             </div>
-            <div style={{ background: "rgba(74,222,128,0.18)", border: "1px solid rgba(74,222,128,0.35)", borderRadius: 20, padding: "4px 10px", fontSize: 9.5, fontWeight: 800, color: th.accent, whiteSpace: "nowrap" }}>
-              PB: {pbRow.hora}
+            <div style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.22)", borderRadius: 20, padding: "4px 10px", fontSize: 9.5, fontWeight: 800, color: th.accent, whiteSpace: "nowrap" }}>
+              TAT: {al.tat || 35} MIN
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 8.5, color: "rgba(255,255,255,0.45)", fontWeight: 600, borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 6, marginTop: 4 }}>
             <span>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
-            <span>TAT NOMINAL: <b style={{ color: "#fff" }}>{al.tat || 35} MIN</b></span>
+            <span style={{ letterSpacing: "0.5px" }}>TURNO EN RAMPA</span>
           </div>
         </div>
 
