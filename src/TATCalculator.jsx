@@ -261,8 +261,6 @@ function Calc({ airlineKey, onLogout }) {
   const defCM = addMins(defETD, -al.tat);
   const [etdItin, setEtdItin] = useState(defETD);
   const [cmReal, setCmReal] = useState(defCM);
-  const [flightNum, setFlightNum] = useState("");
-  const [gate, setGate] = useState("");
   const [obs, setObs] = useState("");
 
   // Checklist
@@ -344,7 +342,7 @@ function Calc({ airlineKey, onLogout }) {
   const buildWA = useCallback(() => {
     const status = isLate ? `ESTADO: DEMORADO +${fmtDur(cmDelta)}` : isEarly ? `ESTADO: ADELANTADO -${fmtDur(-cmDelta)}` : `ESTADO: A TIEMPO`;
     return [
-      `*TAT DISPATCH — ${al.code}${flightNum ? ` ${flightNum}` : ""}*${gate ? ` | GATE ${gate}` : ""}`,
+      `*TAT DISPATCH — ${al.name.toUpperCase()}*`,
       `FECHA: ${new Date().toLocaleDateString("es-PE")} ${nowHHMM()}`, ``,
       `ETD ITINERARIO: *${etdItin}*`,
       `CM REAL: *${cmReal}* (PLAN: ${cmPlan})`,
@@ -356,7 +354,7 @@ function Calc({ airlineKey, onLogout }) {
       `CHECKLIST: ${clComplete ? "COMPLETO" : `${clChecked}/${al.checklist.length}`}`,
       `_TAT Calculator · wsaico.com_`,
     ].filter(l => l !== "").join("\n");
-  }, [al, flightNum, gate, etdItin, cmReal, cmPlan, entRow, pbRow, isLate, isEarly, cmDelta, penalty, obs, clComplete, clChecked]);
+  }, [al, etdItin, cmReal, cmPlan, entRow, pbRow, isLate, isEarly, cmDelta, penalty, obs, clComplete, clChecked]);
 
   const sendWA = () => window.open(`https://wa.me/?text=${encodeURIComponent(buildWA())}`, "_blank");
 
@@ -364,7 +362,7 @@ function Calc({ airlineKey, onLogout }) {
   useEffect(() => {
     if (!notifOk) return;
     const waText = buildWA();
-    const flightLabel = `${al.code}${flightNum ? " " + flightNum : ""}${gate ? " · Gate " + gate : ""}`;
+    const flightLabel = al.name;
 
     const alerts = [
       // Alerta configurable antes del Push back
@@ -407,17 +405,18 @@ function Calc({ airlineKey, onLogout }) {
 
     scheduleAlerts(alerts);
     return () => { clearAlerts(); };
-  }, [notifOk, cmReal, etdItin, flightNum, gate, alertAt, buildWA]);
+  }, [notifOk, cmReal, etdItin, alertAt, buildWA]);
 
   /* ── Fallback en primer plano (cuando SW no puede notificar) ── */
   useEffect(() => {
     if (!notifOk) return;
     const now = Date.now();
+    const lbl = al.name;
     const checks = [
-      { key: "ent", ts: hhmm2ts(entRow.real), title: `Entrega de vuelo ahora`, body: `${al.code}${flightNum ? " " + flightNum : ""} — ${entRow.real}` },
-      { key: "cp", ts: hhmm2ts(cpRow?.real || pbRow.real), title: `Cierre de puertas`, body: `${al.code}${flightNum ? " " + flightNum : ""} — PB a las ${pbRow.real}` },
-      { key: "pb", ts: hhmm2ts(pbRow.real), title: `Push Back`, body: `${al.code}${flightNum ? " " + flightNum : ""} — ETD ${etdItin}` },
-      { key: "pre", ts: hhmm2ts(pbRow.real) - alertAt * 60 * 1000, title: `${alertAt} min para Push Back`, body: `${al.code}${flightNum ? " " + flightNum : ""} — Checklist pendiente` },
+      { key: "ent", ts: hhmm2ts(entRow.real), title: `Entrega de vuelo ahora`, body: `${lbl} — ${entRow.real}` },
+      { key: "cp", ts: hhmm2ts(cpRow?.real || pbRow.real), title: `Cierre de puertas`, body: `${lbl} — PB a las ${pbRow.real}` },
+      { key: "pb", ts: hhmm2ts(pbRow.real), title: `Push Back`, body: `${lbl} — ETD ${etdItin}` },
+      { key: "pre", ts: hhmm2ts(pbRow.real) - alertAt * 60 * 1000, title: `${alertAt} min para Push Back`, body: `${lbl} — Checklist pendiente` },
     ];
     checks.forEach(c => {
       if (!firedRef.current[c.key] && Math.abs(now - c.ts) < 30000) {
@@ -437,7 +436,7 @@ function Calc({ airlineKey, onLogout }) {
   const doSave = () => {
     const e2 = {
       id: Date.now(), date: new Date().toLocaleDateString("es-PE"), time: nowHHMM(),
-      flight: flightNum || "—", gate: gate || "—", airline: airlineKey,
+      airline: airlineKey,
       etd: etdItin, cmPlan, cmReal,
       pbPlan: pbRow.plan, pbReal: pbRow.real, delta: cmDelta,
       obs: obs || "",
@@ -451,8 +450,8 @@ function Calc({ airlineKey, onLogout }) {
     const lates = history.filter(h => h.delta > 0).length;
     const ontime = history.filter(h => h.delta <= 0).length;
     const avgD = history.length ? Math.round(history.reduce((a, h) => a + h.delta, 0) / history.length) : 0;
-    const tableRows = history.map(h => { const lt = h.delta > 0, el = h.delta < 0; return `<tr><td>${h.date} ${h.time}</td><td><b>${h.airline} ${h.flight}</b></td><td>${h.gate}</td><td>${h.etd}</td><td>${h.cmReal}</td><td>${h.pbReal}</td><td style="color:${lt ? "#EF4444" : el ? "#16a34a" : "#94A3B8"};font-weight:700">${h.delta === 0 ? "A TIEMPO" : lt ? `DEMORA +${fmtDur(h.delta)}` : `ADELANTO -${fmtDur(-h.delta)}`}</td><td>${h.penalty ? `USD ${h.penalty}` : "-"}</td></tr>`; }).join("");
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title><style>body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1E293B;font-size:13px;}h1{font-size:22px;margin-bottom:4px;}h2{font-size:14px;color:#64748B;font-weight:400;margin-bottom:24px;}.kpis{display:flex;gap:16px;margin-bottom:24px;}.kpi{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px 18px;text-align:center;}.kpi-v{font-size:24px;font-weight:800;}.kpi-l{font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#64748B;}td{padding:8px 10px;border-bottom:1px solid #F1F5F9;font-size:12px;}.ft{margin-top:32px;font-size:10px;color:#94A3B8;text-align:center;border-top:1px solid #E2E8F0;padding-top:12px;}</style></head><body><h1>Reporte de Turno — ${al.name}</h1><h2>${new Date().toLocaleDateString("es-PE", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h2><div class="kpis"><div class="kpi"><div class="kpi-v">${history.length}</div><div class="kpi-l">Vuelos</div></div><div class="kpi"><div class="kpi-v" style="color:#16a34a">${ontime}</div><div class="kpi-l">A tiempo</div></div><div class="kpi"><div class="kpi-v" style="color:#EF4444">${lates}</div><div class="kpi-l">Demorados</div></div><div class="kpi"><div class="kpi-v" style="color:${avgD > 0 ? "#EF4444" : avgD < 0 ? "#16a34a" : "#94A3B8"}">${avgD > 0 ? "+" : ""}${avgD}'</div><div class="kpi-l">Promedio</div></div></div><table><thead><tr><th>Fecha/Hora</th><th>Vuelo</th><th>Gate</th><th>ETD</th><th>CM Real</th><th>PB Real</th><th>Estado</th><th>Penalidad</th></tr></thead><tbody>${tableRows}</tbody></table><div class="ft">Generado por TAT Calculator · wsaico.com</div></body></html>`;
+    const tableRows = history.map(h => { const lt = h.delta > 0, el = h.delta < 0; return `<tr><td>${h.date} ${h.time}</td><td><b>${h.airline}</b></td><td>${h.etd}</td><td>${h.cmReal}</td><td>${h.pbReal}</td><td style="color:${lt ? "#EF4444" : el ? "#16a34a" : "#94A3B8"};font-weight:700">${h.delta === 0 ? "A TIEMPO" : lt ? `DEMORA +${fmtDur(h.delta)}` : `ADELANTO -${fmtDur(-h.delta)}`}</td><td>${h.penalty ? `USD ${h.penalty}` : "-"}</td></tr>`; }).join("");
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title><style>body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1E293B;font-size:13px;}h1{font-size:22px;margin-bottom:4px;}h2{font-size:14px;color:#64748B;font-weight:400;margin-bottom:24px;}.kpis{display:flex;gap:16px;margin-bottom:24px;}.kpi{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px 18px;text-align:center;}.kpi-v{font-size:24px;font-weight:800;}.kpi-l{font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#64748B;}td{padding:8px 10px;border-bottom:1px solid #F1F5F9;font-size:12px;}.ft{margin-top:32px;font-size:10px;color:#94A3B8;text-align:center;border-top:1px solid #E2E8F0;padding-top:12px;}</style></head><body><h1>Reporte de Turno — ${al.name}</h1><h2>${new Date().toLocaleDateString("es-PE", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h2><div class="kpis"><div class="kpi"><div class="kpi-v">${history.length}</div><div class="kpi-l">Vuelos</div></div><div class="kpi"><div class="kpi-v" style="color:#16a34a">${ontime}</div><div class="kpi-l">A tiempo</div></div><div class="kpi"><div class="kpi-v" style="color:#EF4444">${lates}</div><div class="kpi-l">Demorados</div></div><div class="kpi"><div class="kpi-v" style="color:${avgD > 0 ? "#EF4444" : avgD < 0 ? "#16a34a" : "#94A3B8"}">${avgD > 0 ? "+" : ""}${avgD}'</div><div class="kpi-l">Promedio</div></div></div><table><thead><tr><th>Fecha/Hora</th><th>Aerolínea</th><th>ETD</th><th>CM Real</th><th>PB Real</th><th>Estado</th><th>Penalidad</th></tr></thead><tbody>${tableRows}</tbody></table><div class="ft">Generado por TAT Calculator · wsaico.com</div></body></html>`;
     const w = window.open("", "_blank"); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
   };
 
@@ -498,8 +497,7 @@ function Calc({ airlineKey, onLogout }) {
             <div key={h.id} style={{ background: card, borderRadius: 12, padding: "12px 14px", marginBottom: 8, border: `1px solid ${bdr}` }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: txt }}>{h.airline} {h.flight}</span>
-                  {h.gate !== "—" && <span style={{ fontSize: 10, color: mut, background: dark ? "rgba(255,255,255,0.05)" : "#F8FAFC", borderRadius: 6, padding: "2px 7px", fontWeight: 600 }}>Gate {h.gate}</span>}
+                  <span style={{ fontSize: 15, fontWeight: 800, color: txt }}>{h.airline}</span>
                   {h.clComplete && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ADE80", background: "rgba(74,222,128,0.1)", borderRadius: 6, padding: "2px 7px" }}>CL OK</span>}
                 </div>
                 <button onClick={() => saveHistory(history.filter(x => x.id !== h.id))} style={{ background: "none", border: "none", cursor: "pointer", color: mut, display: "flex" }}>{Ic.trash}</button>
@@ -655,56 +653,28 @@ function Calc({ airlineKey, onLogout }) {
       {/* ── HERO ──────────────────────────────────────────────── */}
       <div className="H" style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})` }}>
 
-        {/* Flight + Gate + Mode Selector */}
-        <div className="H-flight-row" style={{ alignItems: "center" }}>
-          <input className="H-fi" placeholder="N° Vuelo" value={flightNum} onChange={e => setFlightNum(e.target.value.toUpperCase())} style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }} />
-          <input className="H-fi" placeholder="Gate" value={gate} onChange={e => setGate(e.target.value.toUpperCase())} style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", width: 68 }} />
-
-          {/* Mode toggle button */}
-          <div style={{ display: "flex", background: "rgba(0,0,0,0.25)", padding: 2, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)" }}>
-            <button
-              onClick={() => setViewMode("timer")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "6px 9px",
-                borderRadius: 8,
-                border: "none",
-                background: viewMode === "timer" ? th.accent : "transparent",
-                color: viewMode === "timer" ? "#061A0C" : "rgba(255,255,255,0.6)",
-                fontFamily: "'Plus Jakarta Sans',sans-serif",
-                fontSize: 10,
-                fontWeight: 800,
-                cursor: "pointer",
-                transition: "all .15s",
-              }}
-              title="Modo con temporizador en vivo"
-            >
-              {Ic.timer} En Vivo
-            </button>
-            <button
-              onClick={() => setViewMode("gantt")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "6px 9px",
-                borderRadius: 8,
-                border: "none",
-                background: viewMode === "gantt" ? th.accent : "transparent",
-                color: viewMode === "gantt" ? "#061A0C" : "rgba(255,255,255,0.6)",
-                fontFamily: "'Plus Jakarta Sans',sans-serif",
-                fontSize: 10,
-                fontWeight: 800,
-                cursor: "pointer",
-                transition: "all .15s",
-              }}
-              title="Modo Carta Gantt (Secuencia limpia)"
-            >
-              {Ic.chart} Gantt
-            </button>
-          </div>
+        {/* Selector de Modo (50/50 Segmented Control) */}
+        <div className="H-mode-switch">
+          <button
+            className={`H-mode-btn ${viewMode === "timer" ? "active" : ""}`}
+            onClick={() => setViewMode("timer")}
+            style={{
+              background: viewMode === "timer" ? th.accent : "transparent",
+              color: viewMode === "timer" ? "#061A0C" : "rgba(255,255,255,0.7)",
+            }}
+          >
+            {Ic.timer} Modo En Vivo
+          </button>
+          <button
+            className={`H-mode-btn ${viewMode === "gantt" ? "active" : ""}`}
+            onClick={() => setViewMode("gantt")}
+            style={{
+              background: viewMode === "gantt" ? th.accent : "transparent",
+              color: viewMode === "gantt" ? "#061A0C" : "rgba(255,255,255,0.7)",
+            }}
+          >
+            {Ic.chart} Carta Gantt
+          </button>
         </div>
 
         {/* Status message */}
@@ -837,7 +807,7 @@ function Calc({ airlineKey, onLogout }) {
 
       {/* BOTTOM BAR */}
       <div className="B" style={{ background: card, borderColor: bdr }}>
-        <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setEtdItin(defETD); setFlightNum(""); setGate(""); setObs(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
+        <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setEtdItin(defETD); setObs(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
           {Ic.reset}<span>Reset</span>
         </button>
         <button className="B-btn" style={{ color: mut }} onClick={() => setShowWA(true)}>
@@ -860,7 +830,7 @@ function Calc({ airlineKey, onLogout }) {
         <div style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})`, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
             <div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name}{flightNum ? ` · ${flightNum}` : ""}{gate ? ` | Gate ${gate}` : ""}</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name}</div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</div>
             </div>
             <div style={{ background: SBg, border: `1px solid ${SBr}`, borderRadius: 20, padding: "4px 10px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8.5, fontWeight: 700, color: SC }}>{isLate ? `DEMORA +${fmtDur(cmDelta)}` : isEarly ? `ADELANTO −${fmtDur(-cmDelta)}` : "EN TIEMPO"}</div>
@@ -937,8 +907,6 @@ function CalcDur({ airlineKey, onLogout }) {
   /* ── Vuelo ──────────────────────────────────────────────────────── */
   const defCM = nowHHMM();
   const [cmReal,    setCmReal]    = useState(defCM);
-  const [flightNum, setFlightNum] = useState("");
-  const [gate,      setGate]      = useState("");
   const [obs,       setObs]       = useState("");
 
   /* ── Checklist ──────────────────────────────────────────────────── */
@@ -1001,7 +969,7 @@ function CalcDur({ airlineKey, onLogout }) {
   /* ── WhatsApp builder ───────────────────────────────────────────── */
   const buildWA = useCallback(() => {
     return [
-      `*TAT DISPATCH — ${al.code}${flightNum ? ` ${flightNum}` : ""}*${gate ? ` | GATE ${gate}` : ""}`,
+      `*TAT DISPATCH — ${al.name.toUpperCase()}*`,
       `FECHA: ${new Date().toLocaleDateString("es-PE")} ${nowHHMM()}`, ``,
       `CORTE MOTOR (CM): *${cmReal}*`,
       `ENTREGA DE VUELO: *${entRow.hora}*`,
@@ -1010,7 +978,7 @@ function CalcDur({ airlineKey, onLogout }) {
       `CHECKLIST: ${clComplete ? "COMPLETO" : `${clChecked}/${al.checklist.length}`}`,
       `_TAT Calculator · wsaico.com_`,
     ].filter(l => l !== "").join("\n");
-  }, [al, flightNum, gate, cmReal, entRow, pbRow, obs, clComplete, clChecked]);
+  }, [al, cmReal, entRow, pbRow, obs, clComplete, clChecked]);
 
   const sendWA = () => window.open(`https://wa.me/?text=${encodeURIComponent(buildWA())}`, "_blank");
 
@@ -1018,7 +986,7 @@ function CalcDur({ airlineKey, onLogout }) {
   useEffect(() => {
     if (!notifOk) return;
     const waText = buildWA();
-    const lbl    = `${al.code}${flightNum ? " " + flightNum : ""}${gate ? " · Gate " + gate : ""}`;
+    const lbl    = al.name;
     const alerts = [
       { id: "pre-pb", title: `${alertAt} min para Push Back`, body: `${lbl} — PB a las ${pbRow.hora}. Checklist pendiente.`, fireAt: hhmm2ts(pbRow.hora) - alertAt * 60 * 1000, tag: "tat-pre-pb", waText },
       { id: "ent",    title: `Entrega de vuelo ahora`,  body: `${lbl} — Entrega: ${entRow.hora}. Cierre: ${cpRow?.hora || "—"}`, fireAt: hhmm2ts(entRow.hora), tag: "tat-ent", waText },
@@ -1027,13 +995,13 @@ function CalcDur({ airlineKey, onLogout }) {
     ].filter(a => a.fireAt > Date.now());
     scheduleAlerts(alerts);
     return () => { clearAlerts(); };
-  }, [notifOk, cmReal, flightNum, gate, alertAt, buildWA]);
+  }, [notifOk, cmReal, alertAt, buildWA]);
 
   /* ── Fallback en primer plano ───────────────────────────────────── */
   useEffect(() => {
     if (!notifOk) return;
     const now = Date.now();
-    const lbl = `${al.code}${flightNum ? " " + flightNum : ""}`;
+    const lbl = al.name;
     [
       { key: "ent", ts: hhmm2ts(entRow.hora), title: `Entrega de vuelo ahora`,   body: `${lbl} — ${entRow.hora}` },
       { key: "cp",  ts: hhmm2ts(cpRow?.hora || pbRow.hora), title: `Cierre de puertas`, body: `${lbl} — PB: ${pbRow.hora}` },
@@ -1055,7 +1023,7 @@ function CalcDur({ airlineKey, onLogout }) {
   const doSave = () => {
     const entry = {
       id: Date.now(), date: new Date().toLocaleDateString("es-PE"), time: nowHHMM(),
-      flight: flightNum || "—", gate: gate || "—", airline: airlineKey,
+      airline: airlineKey,
       etd: pbRow.hora, cmPlan: cmReal, cmReal,
       pbPlan: pbRow.hora, pbReal: pbRow.hora, delta: 0,
       obs: obs || "",
@@ -1067,9 +1035,9 @@ function CalcDur({ airlineKey, onLogout }) {
   /* ── Exportar PDF del turno ─────────────────────────────────────── */
   const exportPDF = () => {
     const tableRows = history.map(h =>
-      `<tr><td>${h.date} ${h.time}</td><td><b>${h.airline} ${h.flight}</b></td><td>${h.gate}</td><td>${h.cmReal}</td><td>${h.pbReal}</td><td>${h.clComplete ? "OK" : "—"}</td></tr>`
+      `<tr><td>${h.date} ${h.time}</td><td><b>${h.airline}</b></td><td>${h.cmReal}</td><td>${h.pbReal}</td><td>${h.clComplete ? "OK" : "—"}</td></tr>`
     ).join("");
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title><style>body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1E293B;font-size:13px;}h1{font-size:22px;margin-bottom:4px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#64748B;}td{padding:8px 10px;border-bottom:1px solid #F1F5F9;font-size:12px;}.ft{margin-top:32px;font-size:10px;color:#94A3B8;text-align:center;border-top:1px solid #E2E8F0;padding-top:12px;}</style></head><body><h1>Reporte de Turno — ${al.name}</h1><table><thead><tr><th>Fecha/Hora</th><th>Vuelo</th><th>Gate</th><th>CM</th><th>Push Back</th><th>Checklist</th></tr></thead><tbody>${tableRows}</tbody></table><div class="ft">TAT Calculator · wsaico.com</div></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title><style>body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1E293B;font-size:13px;}h1{font-size:22px;margin-bottom:4px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#64748B;}td{padding:8px 10px;border-bottom:1px solid #F1F5F9;font-size:12px;}.ft{margin-top:32px;font-size:10px;color:#94A3B8;text-align:center;border-top:1px solid #E2E8F0;padding-top:12px;}</style></head><body><h1>Reporte de Turno — ${al.name}</h1><table><thead><tr><th>Fecha/Hora</th><th>Aerolínea</th><th>CM</th><th>Push Back</th><th>Checklist</th></tr></thead><tbody>${tableRows}</tbody></table><div class="ft">TAT Calculator · wsaico.com</div></body></html>`;
     const w = window.open("", "_blank"); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
   };
 
@@ -1110,8 +1078,7 @@ function CalcDur({ airlineKey, onLogout }) {
           <div key={h.id} style={{ background: card, borderRadius: 12, padding: "12px 14px", marginBottom: 8, border: `1px solid ${bdr}` }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 15, fontWeight: 800, color: txt }}>{h.airline} {h.flight}</span>
-                {h.gate !== "—" && <span style={{ fontSize: 10, color: mut, background: dark ? "rgba(255,255,255,0.05)" : "#F8FAFC", borderRadius: 6, padding: "2px 7px", fontWeight: 600 }}>Gate {h.gate}</span>}
+                <span style={{ fontSize: 15, fontWeight: 800, color: txt }}>{h.airline}</span>
                 {h.clComplete && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ADE80", background: "rgba(74,222,128,0.1)", borderRadius: 6, padding: "2px 7px" }}>CL OK</span>}
               </div>
               <button onClick={() => saveHistory(history.filter(x => x.id !== h.id))} style={{ background: "none", border: "none", cursor: "pointer", color: mut, display: "flex" }}>{Ic.trash}</button>
@@ -1245,56 +1212,28 @@ function CalcDur({ airlineKey, onLogout }) {
       {/* ── HERO ── */}
       <div className="H" style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})` }}>
 
-        {/* Flight + Gate + Mode Selector */}
-        <div className="H-flight-row" style={{ alignItems: "center" }}>
-          <input className="H-fi" placeholder="N° Vuelo" value={flightNum} onChange={e => setFlightNum(e.target.value.toUpperCase())} style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }} />
-          <input className="H-fi" placeholder="Gate" value={gate} onChange={e => setGate(e.target.value.toUpperCase())} style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", width: 68 }} />
-          
-          {/* Mode toggle button */}
-          <div style={{ display: "flex", background: "rgba(0,0,0,0.25)", padding: 2, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)" }}>
-            <button
-              onClick={() => setViewMode("timer")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "6px 9px",
-                borderRadius: 8,
-                border: "none",
-                background: viewMode === "timer" ? th.accent : "transparent",
-                color: viewMode === "timer" ? "#061A0C" : "rgba(255,255,255,0.6)",
-                fontFamily: "'Plus Jakarta Sans',sans-serif",
-                fontSize: 10,
-                fontWeight: 800,
-                cursor: "pointer",
-                transition: "all .15s",
-              }}
-              title="Modo con temporizador en vivo"
-            >
-              {Ic.timer} En Vivo
-            </button>
-            <button
-              onClick={() => setViewMode("gantt")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "6px 9px",
-                borderRadius: 8,
-                border: "none",
-                background: viewMode === "gantt" ? th.accent : "transparent",
-                color: viewMode === "gantt" ? "#061A0C" : "rgba(255,255,255,0.6)",
-                fontFamily: "'Plus Jakarta Sans',sans-serif",
-                fontSize: 10,
-                fontWeight: 800,
-                cursor: "pointer",
-                transition: "all .15s",
-              }}
-              title="Modo Carta Gantt (Secuencia limpia)"
-            >
-              {Ic.chart} Gantt
-            </button>
-          </div>
+        {/* Selector de Modo (50/50 Segmented Control) */}
+        <div className="H-mode-switch">
+          <button
+            className={`H-mode-btn ${viewMode === "timer" ? "active" : ""}`}
+            onClick={() => setViewMode("timer")}
+            style={{
+              background: viewMode === "timer" ? th.accent : "transparent",
+              color: viewMode === "timer" ? "#061A0C" : "rgba(255,255,255,0.7)",
+            }}
+          >
+            {Ic.timer} Modo En Vivo
+          </button>
+          <button
+            className={`H-mode-btn ${viewMode === "gantt" ? "active" : ""}`}
+            onClick={() => setViewMode("gantt")}
+            style={{
+              background: viewMode === "gantt" ? th.accent : "transparent",
+              color: viewMode === "gantt" ? "#061A0C" : "rgba(255,255,255,0.7)",
+            }}
+          >
+            {Ic.chart} Carta Gantt
+          </button>
         </div>
 
         {/* Dos cards: CM editable · ENT. VUELO auto-calculado */}
@@ -1412,7 +1351,7 @@ function CalcDur({ airlineKey, onLogout }) {
 
       {/* Bottom bar */}
       <div className="B" style={{ background: card, borderColor: bdr }}>
-        <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setFlightNum(""); setGate(""); setObs(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
+        <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setObs(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
           {Ic.reset}<span>Reset</span>
         </button>
         <button className="B-btn" style={{ color: mut }} onClick={() => setShowWA(true)}>
@@ -1435,7 +1374,7 @@ function CalcDur({ airlineKey, onLogout }) {
         <div style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})`, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
             <div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name}{flightNum ? ` · ${flightNum}` : ""}{gate ? ` | Gate ${gate}` : ""}</div>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name}</div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</div>
             </div>
             <div style={{ background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 20, padding: "4px 10px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8.5, fontWeight: 700, color: th.accent }}>
@@ -1543,9 +1482,9 @@ body,#root{background:#03060F;color:#fff;font-family:'Plus Jakarta Sans',sans-se
 
 /* HERO */
 .H{padding:9px 12px 8px;flex-shrink:0;}
-.H-flight-row{display:flex;gap:7px;margin-bottom:8px;}
-.H-fi{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:7px 10px;font-size:13px;font-weight:700;color:#fff;outline:none;letter-spacing:1px;}
-.H-fi::placeholder{color:rgba(255,255,255,0.25);font-weight:400;}
+.H-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(0,0,0,0.32);padding:4px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);margin-bottom:8px;}
+.H-mode-btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 0;border-radius:9px;border:none;background:transparent;color:rgba(255,255,255,0.7);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.H-mode-btn.active{font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
 .H-msg{display:flex;align-items:center;gap:7px;border-radius:10px;padding:8px 11px;margin-bottom:8px;}
 .H-inp-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;}
 .H-inp-card{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:9px 8px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;}
