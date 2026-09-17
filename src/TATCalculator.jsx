@@ -364,7 +364,21 @@ function Calc({ airlineKey, onLogout }) {
   const th = al.theme;
 
   // Prefs
-  const [dark, setDark] = useState(isNight());
+  const [dark, setDark] = useState(() => {
+    try {
+      const saved = localStorage.getItem("tat_theme");
+      return saved ? saved === "dark" : isNight();
+    } catch (_) {
+      return isNight();
+    }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem("tat_theme", dark ? "dark" : "light"); } catch (_) {}
+    document.body.style.background = dark ? "#03060F" : "#F4F6F9";
+    document.documentElement.style.background = dark ? "#03060F" : "#F4F6F9";
+  }, [dark]);
+
   const [alertAt, setAlertAt] = useState(5);
   const [penRate, setPenRate] = useState(0);
   const [notifOk, setNotifOk] = useState(false); // permiso concedido
@@ -689,13 +703,27 @@ function Calc({ airlineKey, onLogout }) {
             </div>
 
             {/* Notificaciones */}
-            <div style={{ padding: "10px 12px", borderRadius: 10, background: notifOk ? "rgba(74,222,128,0.08)" : "rgba(239,68,68,0.08)", border: `1px solid ${notifOk ? "rgba(74,222,128,0.25)" : "rgba(239,68,68,0.2)"}`, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ padding: "10px 12px", borderRadius: 10, background: notifOk ? "rgba(74,222,128,0.08)" : "rgba(239,68,68,0.08)", border: `1px solid ${notifOk ? "rgba(74,222,128,0.25)" : "rgba(239,68,68,0.2)"}`, marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ display: "flex", color: notifOk ? "#4ADE80" : "#EF4444" }}>{notifOk ? Ic.bell : Ic.bellOff}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: notifOk ? "#4ADE80" : "#EF4444" }}>{notifOk ? "Notificaciones activas" : "Notificaciones desactivadas"}</div>
                 <div style={{ fontSize: 10, color: mut, marginTop: 2 }}>{notifOk ? "Recibirás alertas aunque cierres la app" : "Toca para activar permisos"}</div>
               </div>
               {!notifOk && <button onClick={() => setupNotifications().then(ok => setNotifOk(ok))} style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Activar</button>}
+            </div>
+
+            {/* Mantener pantalla encendida (Wake Lock) */}
+            <div style={{ padding: "10px 12px", borderRadius: 10, background: wakeLockActive ? "rgba(251,191,36,0.08)" : (dark ? "rgba(255,255,255,0.03)" : "#F8FAFC"), border: `1px solid ${wakeLockActive ? "rgba(251,191,36,0.3)" : bdr}`, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ color: wakeLockActive ? "#FBBF24" : mut, display: "flex" }}>{wakeLockActive ? Ic.sun : Ic.moon}</span>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: txt }}>Mantener pantalla encendida</div>
+                  <div style={{ fontSize: 10, color: mut, marginTop: 2 }}>Evita que el teléfono se bloquee durante el turno</div>
+                </div>
+              </div>
+              <button onClick={toggleWakeLock} style={{ background: wakeLockActive ? "#FBBF24" : "#475569", border: "none", borderRadius: 20, width: 44, height: 24, cursor: "pointer", position: "relative", transition: "background .2s", flexShrink: 0 }}>
+                <span style={{ position: "absolute", top: 3, left: wakeLockActive ? 22 : 3, width: 18, height: 18, background: "#fff", borderRadius: "50%", transition: "left .2s", display: "block" }} />
+              </button>
             </div>
 
             <label style={{ fontSize: 10, fontWeight: 700, color: mut, letterSpacing: "1.5px", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Alerta antes del Push back</label>
@@ -713,8 +741,8 @@ function Calc({ airlineKey, onLogout }) {
             {penRate > 0 && <div style={{ padding: "8px 10px", background: dark ? "rgba(255,255,255,0.03)" : "#F8FAFC", borderRadius: 8, fontSize: 11, color: mut, marginBottom: 16 }}>5 min demora → USD {(5 * penRate).toFixed(0)}</div>}
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: txt }}>Modo nocturno</span>
-              <button onClick={() => setDark(d => !d)} style={{ background: dark ? th.accent : "#E2E8F0", border: "none", borderRadius: 20, width: 44, height: 24, cursor: "pointer", position: "relative", transition: "background .2s" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: txt }}>Modo oscuro</span>
+              <button onClick={() => setDark(d => !d)} style={{ background: dark ? th.accent : "#CBD5E1", border: "none", borderRadius: 20, width: 44, height: 24, cursor: "pointer", position: "relative", transition: "background .2s" }}>
                 <span style={{ position: "absolute", top: 3, left: dark ? 22 : 3, width: 18, height: 18, background: "#fff", borderRadius: "50%", transition: "left .2s", display: "block" }} />
               </button>
             </div>
@@ -789,28 +817,25 @@ function Calc({ airlineKey, onLogout }) {
           <span className="N-nm">TAT Calculator</span>
         </div>
         <div className="N-r">
-          <button className="N-ico-btn" onClick={() => setShowCfg(true)} title="Configuración">{Ic.cfg}</button>
+          {/* Alternar Modo Claro / Oscuro */}
+          <button
+            className="N-ico-btn"
+            onClick={() => {
+              setDark(d => !d);
+              triggerFeedback("tap");
+            }}
+            title={dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            style={{ color: dark ? "#FBBF24" : "#E2E8F0" }}
+          >
+            {dark ? Ic.sun : Ic.moon}
+          </button>
           <button className="N-ico-btn" onClick={() => setView("hist")} style={{ position: "relative" }} title="Historial">
             {Ic.hist}
             {history.length > 0 && <span className="N-badge">{history.length}</span>}
           </button>
-          {/* Indicador de notificaciones */}
-          <button className="N-ico-btn" onClick={() => setShowCfg(true)} title={notifOk ? "Notificaciones activas" : "Activar notificaciones"}
-            style={{ color: notifOk ? "#4ADE80" : "rgba(255,255,255,0.3)" }}>
-            {notifOk ? Ic.bell : Ic.bellOff}
-          </button>
-          {/* Mantener pantalla activa en rampa (Wake Lock) */}
-          <button
-            className="N-ico-btn"
-            onClick={toggleWakeLock}
-            title={wakeLockActive ? "Pantalla siempre activa (ON)" : "Mantener pantalla encendida"}
-            style={{ color: wakeLockActive ? "#FBBF24" : "rgba(255,255,255,0.3)" }}
-          >
-            {wakeLockActive ? Ic.sun : Ic.moon}
-            {wakeLockActive && <span style={{ position: "absolute", bottom: 2, right: 2, width: 5, height: 5, borderRadius: "50%", background: "#FBBF24" }} />}
-          </button>
+          <button className="N-ico-btn" onClick={() => setShowCfg(true)} title="Configuración">{Ic.cfg}</button>
           <span className="N-cd" style={{ color: th.accent }}>{al.code}</span>
-          <button className="N-out" onClick={onLogout}>{Ic.logout}</button>
+          <button className="N-out" onClick={onLogout} title="Cerrar sesión">{Ic.logout}</button>
         </div>
       </nav>
 
