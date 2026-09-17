@@ -421,7 +421,7 @@ function Login({ onLogin }) {
         <div className="L-hdr">
           <div className="L-ico">{Ic.plane}</div>
           <h1 className="L-title">TAT Calculator</h1>
-          <p className="L-sub">Control de tiempos en rampa</p>
+          <p className="L-sub">Control operacional de tiempos TAT</p>
         </div>
 
         <div className="L-options">
@@ -1123,11 +1123,8 @@ function Calc({ airlineKey, onLogout }) {
       <div id="cap" ref={capRef} style={{ width: 390, background: "#080D1A", color: "#F8FAFC", fontFamily: "'Plus Jakarta Sans',sans-serif", overflow: "hidden", borderRadius: 16, border: "1px solid rgba(255,255,255,0.12)" }}>
         {/* Cabecera oficial con gradiente de aerolínea */}
         <div style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, padding: "16px 18px 14px", position: "relative" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{al.name}</div>
-              <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginTop: 2 }}>REPORTE DE OPERACIONES DE RAMPA</div>
-            </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.4px" }}>{al.name}</div>
             <div style={{ background: SBg, border: `1px solid ${SBr}`, borderRadius: 20, padding: "4px 10px", fontSize: 9, fontWeight: 800, color: SC, whiteSpace: "nowrap" }}>
               {isLate ? `DEMORA +${fmtDur(cmDelta)}` : isEarly ? `ADELANTO −${fmtDur(-cmDelta)}` : "A TIEMPO"}
             </div>
@@ -1799,18 +1796,14 @@ function CalcDur({ airlineKey, onLogout }) {
       <div id="cap-dur" ref={capRef} style={{ width: 390, background: "#080D1A", color: "#F8FAFC", fontFamily: "'Plus Jakarta Sans',sans-serif", overflow: "hidden", borderRadius: 16, border: "1px solid rgba(255,255,255,0.12)" }}>
         {/* Cabecera oficial con gradiente de aerolínea */}
         <div style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, padding: "16px 18px 14px", position: "relative" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{al.name}</div>
-              <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginTop: 2 }}>REPORTE DE OPERACIONES DE RAMPA</div>
-            </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.4px" }}>{al.name}</div>
             <div style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.22)", borderRadius: 20, padding: "4px 10px", fontSize: 9.5, fontWeight: 800, color: th.accent, whiteSpace: "nowrap" }}>
               TAT: {al.tat || 35} MIN
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 8.5, color: "rgba(255,255,255,0.45)", fontWeight: 600, borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 6, marginTop: 4 }}>
             <span>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
-            <span style={{ letterSpacing: "0.5px" }}>TURNO EN RAMPA</span>
           </div>
         </div>
 
