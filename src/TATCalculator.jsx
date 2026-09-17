@@ -70,7 +70,7 @@ const AL = {
       { label: "Activación de búsquedas de equipajes.",            planOff: 20             },
       { label: "Confirmación de equipajes a bajarse.",             planOff: 28             },
       { label: "Entrega de vuelo.",                                planOff: 28, isEnt: true },
-      { label: "Fin de embarque. (Ingreso de último pax al avión)",planOff: 29             },
+      { label: "Fin de embarque.",                                 planOff: 29             },
       { label: "Fin de acomodación abordo.",                       planOff: 33             },
       { label: "Cierre de puertas.",                               planOff: 33, isCp: true },
       { label: "Push back.",                                       planOff: 35, isPb: true },
@@ -100,7 +100,7 @@ const AL = {
       { label: "Búsqueda Equipaje", planOff: 21 },
       { label: "Entrega de Vuelo", planOff: 23, isEnt: true },
       { label: "Último Pasajero", planOff: 25 },
-      { label: "Acomodación PAX", planOff: 28 },
+      { label: "Acomodación a bordo", planOff: 28 },
       { label: "Cierre de Puertas", planOff: 28, isCp: true },
       { label: "Encendido Motor", planOff: 28 },
       { label: "Push Back", planOff: 35, isPb: true },
@@ -136,7 +136,6 @@ const Ic = {
   hist: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>,
   cfg: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>,
   wa: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>,
-  pax: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
   list: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>,
   pdf: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>,
   trash: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></svg>,
@@ -250,6 +249,7 @@ function Calc({ airlineKey, onLogout }) {
 
   // Vista
   const [view, setView] = useState("calc");
+  const [viewMode, setViewMode] = useState("timer"); // "timer" (Con Temporizador) | "gantt" (Solo Carta Gantt)
 
   // Vuelo
   const now0 = nowHHMM();
@@ -260,16 +260,6 @@ function Calc({ airlineKey, onLogout }) {
   const [flightNum, setFlightNum] = useState("");
   const [gate, setGate] = useState("");
   const [obs, setObs] = useState("");
-
-  // PAX
-  const [paxTotal, setPaxTotal] = useState("");
-  const [paxConn, setPaxConn] = useState("");
-  const [paxVIP, setPaxVIP] = useState(false);
-  const [paxUM, setPaxUM] = useState(false);
-  const [bagSilla, setBagSilla] = useState("");
-  const [bagMasc, setBagMasc] = useState("");
-  const [bagOv, setBagOv] = useState("");
-  const [showPax, setShowPax] = useState(false);
 
   // Checklist
   const [showCL, setShowCL] = useState(false);
@@ -297,7 +287,23 @@ function Calc({ airlineKey, onLogout }) {
   /* ── Calculations ────────────────────────────────────────────── */
   const cmPlan = addMins(etdItin, -al.tat);
   const cmDelta = subT(cmPlan, cmReal);
-  const rows = al.ms.map(m => ({ ...m, plan: addMins(cmPlan, m.planOff), real: addMins(cmReal, m.planOff), diff: cmDelta }));
+  const nowMinsVal = toMins(nowHHMM());
+  const rows = al.ms.map((m, i) => {
+    const real = addMins(cmReal, m.planOff);
+    const plan = addMins(cmPlan, m.planOff);
+    const rMins = toMins(real);
+    const prevRMins = i === 0 ? toMins(cmReal) : toMins(addMins(cmReal, al.ms[i - 1].planOff));
+    const isPast = nowMinsVal > rMins;
+    const isCurrent = (i === 0 && nowMinsVal <= rMins) || (nowMinsVal >= prevRMins && nowMinsVal <= rMins);
+    return {
+      ...m,
+      plan,
+      real,
+      diff: cmDelta,
+      isPast,
+      isCurrent,
+    };
+  });
   const entRow = rows.find(r => r.isEnt);
   const cpRow = rows.find(r => r.isCp);
   const pbRow = rows.find(r => r.isPb);
@@ -333,8 +339,6 @@ function Calc({ airlineKey, onLogout }) {
   /* ── WhatsApp text builder ────────────────────────────────────── */
   const buildWA = useCallback(() => {
     const status = isLate ? `⚠️ DEMORADO +${fmtDur(cmDelta)}` : isEarly ? `✅ ADELANTADO ${fmtDur(-cmDelta)}` : `✅ EN TIEMPO`;
-    const paxLine = paxTotal ? `👥 PAX: ${paxTotal}${paxConn ? ` (${paxConn} cx)` : ""}` : "";
-    const specs = [paxVIP && "VIP ★", paxUM && "UM 👶", bagSilla && `${bagSilla} sillas`, bagMasc && `${bagMasc} masc.`, bagOv && `${bagOv} oversz`].filter(Boolean).join(" · ");
     return [
       `✈️ *${al.code}${flightNum ? ` ${flightNum}` : ""}*${gate ? ` | Gate ${gate}` : ""}`,
       `📅 ${new Date().toLocaleDateString("es-PE")} ${nowHHMM()}`, ``,
@@ -342,14 +346,13 @@ function Calc({ airlineKey, onLogout }) {
       `🛬 CM Real: *${cmReal}* (Plan: ${cmPlan})`,
       `📋 Entrega vuelo: *${entRow.real}* (Plan: ${entRow.plan})`,
       `🚀 Push Back: *${pbRow.real}* (Plan: ${pbRow.plan})`,
-      paxLine, specs ? `📦 ${specs}` : "",
       penalty ? `💰 Penalidad est.: USD ${penalty}` : "", ``,
       status,
       obs ? `📝 ${obs}` : "", ``,
       clComplete ? `✅ Checklist completo` : `⚠️ Checklist ${clChecked}/${al.checklist.length}`,
       `_TAT Calculator · wsaico.com_`,
     ].filter(l => l !== "").join("\n");
-  }, [al, flightNum, gate, etdItin, cmReal, cmPlan, entRow, pbRow, isLate, isEarly, cmDelta, paxTotal, paxConn, paxVIP, paxUM, bagSilla, bagMasc, bagOv, penalty, obs, clComplete, clChecked]);
+  }, [al, flightNum, gate, etdItin, cmReal, cmPlan, entRow, pbRow, isLate, isEarly, cmDelta, penalty, obs, clComplete, clChecked]);
 
   const sendWA = () => window.open(`https://wa.me/?text=${encodeURIComponent(buildWA())}`, "_blank");
 
@@ -433,8 +436,7 @@ function Calc({ airlineKey, onLogout }) {
       flight: flightNum || "—", gate: gate || "—", airline: airlineKey,
       etd: etdItin, cmPlan, cmReal,
       pbPlan: pbRow.plan, pbReal: pbRow.real, delta: cmDelta,
-      obs: obs || "", paxTotal: paxTotal || "", paxConn: paxConn || "",
-      specials: [paxVIP && "VIP", paxUM && "UM", bagSilla && `${bagSilla} sillas`, bagMasc && `${bagMasc} masc.`, bagOv && `${bagOv} oversz`].filter(Boolean).join(", "),
+      obs: obs || "",
       penalty: penalty || "", clComplete,
     };
     saveHistory([e2, ...history].slice(0, 30));
@@ -497,7 +499,6 @@ function Calc({ airlineKey, onLogout }) {
                   <div key={l} style={{ textAlign: "center" }}><div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>{l}</div><div style={{ fontSize: 13, fontWeight: 800, color: txt, fontVariantNumeric: "tabular-nums" }}>{v}</div></div>
                 ))}
               </div>
-              {h.paxTotal && <div style={{ fontSize: 10, color: mut, marginBottom: 3 }}>👥 {h.paxTotal} PAX{h.paxConn ? ` · ${h.paxConn} cx` : ""}{h.specials ? ` · ${h.specials}` : ""}</div>}
               {h.penalty && <div style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", marginBottom: 3 }}>💰 USD {h.penalty}</div>}
               {h.obs && <div style={{ fontSize: 10, color: mut, fontStyle: "italic", borderTop: `1px solid ${bdr}`, paddingTop: 5, marginTop: 4 }}>📝 {h.obs}</div>}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 7 }}>
@@ -644,10 +645,50 @@ function Calc({ airlineKey, onLogout }) {
       {/* ── HERO ──────────────────────────────────────────────── */}
       <div className="H" style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})` }}>
 
-        {/* Flight + Gate */}
-        <div className="H-flight-row">
+        {/* Flight + Gate + Mode Selector */}
+        <div className="H-flight-row" style={{ alignItems: "center" }}>
           <input className="H-fi" placeholder="N° Vuelo" value={flightNum} onChange={e => setFlightNum(e.target.value.toUpperCase())} style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }} />
           <input className="H-fi" placeholder="Gate" value={gate} onChange={e => setGate(e.target.value.toUpperCase())} style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", width: 68 }} />
+
+          {/* Mode toggle button */}
+          <div style={{ display: "flex", background: "rgba(0,0,0,0.25)", padding: 2, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)" }}>
+            <button
+              onClick={() => setViewMode("timer")}
+              style={{
+                padding: "6px 9px",
+                borderRadius: 8,
+                border: "none",
+                background: viewMode === "timer" ? th.accent : "transparent",
+                color: viewMode === "timer" ? "#061A0C" : "rgba(255,255,255,0.6)",
+                fontFamily: "'Plus Jakarta Sans',sans-serif",
+                fontSize: 10,
+                fontWeight: 800,
+                cursor: "pointer",
+                transition: "all .15s",
+              }}
+              title="Modo con temporizador en vivo"
+            >
+              ⏱️ En Vivo
+            </button>
+            <button
+              onClick={() => setViewMode("gantt")}
+              style={{
+                padding: "6px 9px",
+                borderRadius: 8,
+                border: "none",
+                background: viewMode === "gantt" ? th.accent : "transparent",
+                color: viewMode === "gantt" ? "#061A0C" : "rgba(255,255,255,0.6)",
+                fontFamily: "'Plus Jakarta Sans',sans-serif",
+                fontSize: 10,
+                fontWeight: 800,
+                cursor: "pointer",
+                transition: "all .15s",
+              }}
+              title="Modo Carta Gantt (Secuencia limpia)"
+            >
+              📊 Gantt
+            </button>
+          </div>
         </div>
 
         {/* Status message */}
@@ -671,22 +712,24 @@ function Calc({ airlineKey, onLogout }) {
           </div>
         </div>
 
-        {/* ⏱ COUNTDOWN — protagonista */}
-        <div className={`H-cd${cdUrgent ? " H-cd-u" : ""}`} style={{
-          background: cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(0,0,0,0.2)",
-          borderColor: cdUrgent ? "rgba(239,68,68,0.55)" : "rgba(255,255,255,0.1)",
-        }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: cdUrgent ? "#EF4444" : "rgba(255,255,255,0.35)", marginBottom: 1 }}>{entPassed ? "Entrega hace" : "Entrega en"}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", letterSpacing: "2px", color: cdUrgent ? "#EF4444" : entPassed ? "rgba(255,255,255,0.25)" : "#fff", lineHeight: 1 }}>{cdStr}</div>
-            <div style={{ fontSize: 10, color: SC, fontWeight: 700, marginTop: 2 }}>Target: {entRow.real} · Máx: {entRow.plan}</div>
+        {/* ⏱ COUNTDOWN (Visible solo en Modo Timer) */}
+        {viewMode === "timer" && (
+          <div className={`H-cd${cdUrgent ? " H-cd-u" : ""}`} style={{
+            background: cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(0,0,0,0.2)",
+            borderColor: cdUrgent ? "rgba(239,68,68,0.55)" : "rgba(255,255,255,0.1)",
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: cdUrgent ? "#EF4444" : "rgba(255,255,255,0.35)", marginBottom: 1 }}>{entPassed ? "Entrega hace" : "Entrega en"}</div>
+              <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", letterSpacing: "2px", color: cdUrgent ? "#EF4444" : entPassed ? "rgba(255,255,255,0.25)" : "#fff", lineHeight: 1 }}>{cdStr}</div>
+              <div style={{ fontSize: 10, color: SC, fontWeight: 700, marginTop: 2 }}>Target: {entRow.real} · Máx: {entRow.plan}</div>
+            </div>
+            {/* Checklist status */}
+            <button onClick={() => setShowCL(true)} style={{ background: clComplete ? "rgba(74,222,128,0.2)" : cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)", border: `1px solid ${clComplete ? "rgba(74,222,128,0.35)" : cdUrgent ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "8px 10px", cursor: "pointer", color: clComplete ? "#4ADE80" : cdUrgent ? "#EF4444" : "rgba(255,255,255,0.45)", fontFamily: "'Plus Jakarta Sans',sans-serif", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+              <span style={{ fontSize: 16 }}>{clComplete ? "✅" : "📋"}</span>
+              <span style={{ fontSize: 9, fontWeight: 700 }}>{clChecked}/{al.checklist.length}</span>
+            </button>
           </div>
-          {/* Checklist status */}
-          <button onClick={() => setShowCL(true)} style={{ background: clComplete ? "rgba(74,222,128,0.2)" : cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)", border: `1px solid ${clComplete ? "rgba(74,222,128,0.35)" : cdUrgent ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "8px 10px", cursor: "pointer", color: clComplete ? "#4ADE80" : cdUrgent ? "#EF4444" : "rgba(255,255,255,0.45)", fontFamily: "'Plus Jakarta Sans',sans-serif", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-            <span style={{ fontSize: 16 }}>{clComplete ? "✅" : "📋"}</span>
-            <span style={{ fontSize: 9, fontWeight: 700 }}>{clChecked}/{al.checklist.length}</span>
-          </button>
-        </div>
+        )}
 
         {/* Alerts strip */}
         <div style={{ display: "flex", gap: 5, marginBottom: 7 }}>
@@ -713,35 +756,6 @@ function Calc({ airlineKey, onLogout }) {
         </div>
       </div>
 
-      {/* PAX toggle */}
-      <button onClick={() => setShowPax(s => !s)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "7px 14px", background: "none", border: "none", borderBottom: `1px solid ${bdr}`, cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7, color: mut }}>
-          {Ic.pax}
-          <span style={{ fontSize: 11, fontWeight: 700, color: txt }}>Info del vuelo</span>
-          {paxTotal && <span style={{ fontSize: 10, color: mut }}>· {paxTotal} PAX{paxConn ? ` · ${paxConn} cx` : ""}{paxVIP ? " · VIP" : ""}{paxUM ? " · UM" : ""}</span>}
-        </div>
-        <span style={{ fontSize: 11, color: mut }}>{showPax ? "▲" : "▼"}</span>
-      </button>
-      {showPax && (
-        <div style={{ padding: "10px 14px 12px", background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)", borderBottom: `1px solid ${bdr}` }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
-            {[["Total PAX", paxTotal, setPaxTotal], ["Conexiones", paxConn, setPaxConn]].map(([l, v, s]) => (
-              <div key={l}><label style={{ fontSize: 9, fontWeight: 700, color: mut, letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 4 }}>{l}</label><input type="number" min="0" placeholder="0" value={v} onChange={e => s(e.target.value)} style={{ width: "100%", padding: "8px 10px", border: `1px solid ${bdr}`, borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 700, color: txt, background: card, outline: "none" }} /></div>
-            ))}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 7, marginBottom: 8 }}>
-            {[["Sillas", bagSilla, setBagSilla], ["Mascotas", bagMasc, setBagMasc], ["Oversized", bagOv, setBagOv]].map(([l, v, s]) => (
-              <div key={l}><label style={{ fontSize: 9, fontWeight: 700, color: mut, letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 4 }}>{l}</label><input type="number" min="0" placeholder="0" value={v} onChange={e => s(e.target.value)} style={{ width: "100%", padding: "7px 8px", border: `1px solid ${bdr}`, borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 700, color: txt, background: card, outline: "none" }} /></div>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: 7 }}>
-            {[[paxVIP, setPaxVIP, "★ VIP"], [paxUM, setPaxUM, "👶 UM"]].map(([v, s, l]) => (
-              <button key={l} onClick={() => s(x => !x)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: `1.5px solid ${v ? th.accent : bdr}`, background: v ? `${th.accent}18` : card, color: v ? th.accent : mut, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{l}</button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* TABLE HEADER */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 40px", gap: 4, padding: "6px 12px 4px", background: card, borderBottom: `1px solid ${bdr}`, position: "sticky", top: 0, zIndex: 5 }}>
         {["HITO", "PLAN", "REAL", "DIF"].map((l, i) => (
@@ -755,13 +769,38 @@ function Calc({ airlineKey, onLogout }) {
           const lt = r.diff > 0, el = r.diff < 0;
           const dc = lt ? "#EF4444" : el ? "#4ADE80" : mut;
           const ds = r.diff === 0 ? "00:00" : lt ? `+${fmtDur(r.diff)}` : `−${fmtDur(-r.diff)}`;
-          const bg2 = r.isEnt ? (dark ? "rgba(74,222,128,0.08)" : "#F0FDF4") : r.isPb ? (dark ? "rgba(129,140,248,0.08)" : "#EEF2FF") : r.isCp ? (dark ? "rgba(251,191,36,0.06)" : "#FFFBEB") : lt ? (dark ? "rgba(239,68,68,0.05)" : "#FEF9F9") : el ? (dark ? "rgba(74,222,128,0.04)" : "#F7FEF7") : card;
-          const bl = r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#F59E0B" : lt ? "#EF4444" : el ? "#4ADE80" : bdr;
+          const bg2 = r.isCurrent
+            ? (dark ? "rgba(37,99,235,0.22)" : "#EFF6FF")
+            : r.isEnt ? (dark ? "rgba(74,222,128,0.08)" : "#F0FDF4")
+            : r.isPb ? (dark ? "rgba(129,140,248,0.08)" : "#EEF2FF")
+            : r.isCp ? (dark ? "rgba(251,191,36,0.06)" : "#FFFBEB")
+            : lt ? (dark ? "rgba(239,68,68,0.05)" : "#FEF9F9")
+            : el ? (dark ? "rgba(74,222,128,0.04)" : "#F7FEF7")
+            : card;
+          const bl = r.isCurrent
+            ? "#38BDF8"
+            : r.isEnt ? th.accent
+            : r.isPb ? "#818CF8"
+            : r.isCp ? "#F59E0B"
+            : lt ? "#EF4444"
+            : el ? "#4ADE80"
+            : bdr;
+          const lbl = r.isCurrent
+            ? (dark ? "#7DD3FC" : "#0369A1")
+            : r.isEnt ? (dark ? "#86EFAC" : "#166534")
+            : r.isPb ? (dark ? "#A5B4FC" : "#3730A3")
+            : r.isCp ? (dark ? "#FCD34D" : "#92400E")
+            : txt;
           return (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 40px", gap: 4, alignItems: "center", background: bg2, borderRadius: 10, padding: "8px 10px", marginBottom: 4, borderLeft: `3px solid ${bl}`, animation: `rIn .15s ease ${i * 8}ms both` }}>
+            <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 40px", gap: 4, alignItems: "center", background: bg2, borderRadius: 10, padding: "8px 10px", marginBottom: 4, borderLeft: `3px solid ${bl}`, border: r.isCurrent ? `1px solid ${dark ? "rgba(56,189,248,0.4)" : "rgba(37,99,235,0.3)"}` : undefined, animation: `rIn .15s ease ${i * 8}ms both` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: bl, flexShrink: 0 }} />
-                <span style={{ fontSize: 11.5, fontWeight: r.isEnt || r.isPb || r.isCp ? 700 : 600, color: r.isEnt ? (dark ? "#86EFAC" : "#166534") : r.isPb ? (dark ? "#A5B4FC" : "#3730A3") : r.isCp ? (dark ? "#FCD34D" : "#92400E") : txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</span>
+                <span style={{ fontSize: 11.5, fontWeight: r.isCurrent || r.isEnt || r.isPb || r.isCp ? 700 : 600, color: lbl, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</span>
+                {r.isCurrent && (
+                  <span style={{ marginLeft: "auto", fontSize: 8, fontWeight: 800, letterSpacing: "0.5px", padding: "2px 6px", borderRadius: 6, background: "#38BDF8", color: "#0F172A", textTransform: "uppercase" }}>
+                    Actual
+                  </span>
+                )}
               </div>
               <span style={{ fontSize: 12, fontWeight: 800, textAlign: "center", color: mut, fontVariantNumeric: "tabular-nums" }}>{r.plan}</span>
               <span style={{ fontSize: 12, fontWeight: 700, textAlign: "center", color: lt ? "#EF4444" : el ? (dark ? "#86EFAC" : "#15803D") : txt, fontVariantNumeric: "tabular-nums" }}>{r.real}</span>
@@ -782,7 +821,7 @@ function Calc({ airlineKey, onLogout }) {
 
       {/* BOTTOM BAR */}
       <div className="B" style={{ background: card, borderColor: bdr }}>
-        <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setEtdItin(defETD); setFlightNum(""); setGate(""); setObs(""); setPaxTotal(""); setPaxConn(""); setPaxVIP(false); setPaxUM(false); setBagSilla(""); setBagMasc(""); setBagOv(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
+        <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setEtdItin(defETD); setFlightNum(""); setGate(""); setObs(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
           {Ic.reset}<span>Reset</span>
         </button>
         {/* 📲 WhatsApp — botón principal grande */}
@@ -873,11 +912,12 @@ function CalcDur({ airlineKey, onLogout }) {
   const th = al.theme;
 
   /* ── Prefs & UI ─────────────────────────────────────────────────── */
-  const [dark,    setDark]    = useState(isNight());
-  const [alertAt, setAlertAt] = useState(5);
-  const [notifOk, setNotifOk] = useState(false);
-  const [showCfg, setShowCfg] = useState(false);
-  const [view,    setView]    = useState("calc");
+  const [dark,     setDark]     = useState(isNight());
+  const [alertAt,  setAlertAt]  = useState(5);
+  const [notifOk,  setNotifOk]  = useState(false);
+  const [showCfg,  setShowCfg]  = useState(false);
+  const [view,     setView]     = useState("calc");
+  const [viewMode, setViewMode] = useState("timer"); // "timer" (Con Temporizador) | "gantt" (Solo Carta Gantt)
 
   /* ── Vuelo ──────────────────────────────────────────────────────── */
   const defCM = nowHHMM();
@@ -885,16 +925,6 @@ function CalcDur({ airlineKey, onLogout }) {
   const [flightNum, setFlightNum] = useState("");
   const [gate,      setGate]      = useState("");
   const [obs,       setObs]       = useState("");
-
-  /* ── PAX ────────────────────────────────────────────────────────── */
-  const [paxTotal, setPaxTotal] = useState("");
-  const [paxConn,  setPaxConn]  = useState("");
-  const [paxVIP,   setPaxVIP]   = useState(false);
-  const [paxUM,    setPaxUM]    = useState(false);
-  const [bagSilla, setBagSilla] = useState("");
-  const [bagMasc,  setBagMasc]  = useState("");
-  const [bagOv,    setBagOv]    = useState("");
-  const [showPax,  setShowPax]  = useState(false);
 
   /* ── Checklist ──────────────────────────────────────────────────── */
   const [showCL, setShowCL] = useState(false);
@@ -921,11 +951,21 @@ function CalcDur({ airlineKey, onLogout }) {
   // duración = delta de planOff entre hito actual y el anterior
   const fmtDurMin = mins => `${p2(Math.floor(mins / 60))}:${p2(mins % 60)}`;
 
-  const rows = al.ms.map((m, i) => ({
-    ...m,
-    hora:     addMins(cmReal, m.planOff),
-    duracion: i === 0 ? 0 : m.planOff - al.ms[i - 1].planOff,
-  }));
+  const nowMinsVal = toMins(nowHHMM());
+  const rows = al.ms.map((m, i) => {
+    const hora = addMins(cmReal, m.planOff);
+    const hMins = toMins(hora);
+    const prevHMins = i === 0 ? toMins(cmReal) : toMins(addMins(cmReal, al.ms[i - 1].planOff));
+    const isPast = nowMinsVal > hMins;
+    const isCurrent = (i === 0 && nowMinsVal <= hMins) || (nowMinsVal >= prevHMins && nowMinsVal <= hMins);
+    return {
+      ...m,
+      hora,
+      duracion: i === 0 ? 0 : m.planOff - al.ms[i - 1].planOff,
+      isPast,
+      isCurrent,
+    };
+  });
   const entRow = rows.find(r => r.isEnt);
   const cpRow  = rows.find(r => r.isCp);
   const pbRow  = rows.find(r => r.isPb);
@@ -945,20 +985,17 @@ function CalcDur({ airlineKey, onLogout }) {
 
   /* ── WhatsApp builder ───────────────────────────────────────────── */
   const buildWA = useCallback(() => {
-    const paxLine = paxTotal ? `👥 PAX: ${paxTotal}${paxConn ? ` (${paxConn} cx)` : ""}` : "";
-    const specs   = [paxVIP && "VIP ★", paxUM && "UM 👶", bagSilla && `${bagSilla} sillas`, bagMasc && `${bagMasc} masc.`, bagOv && `${bagOv} oversz`].filter(Boolean).join(" · ");
     return [
       `✈️ *${al.code}${flightNum ? ` ${flightNum}` : ""}*${gate ? ` | Gate ${gate}` : ""}`,
       `📅 ${new Date().toLocaleDateString("es-PE")} ${nowHHMM()}`, ``,
       `🛬 CM: *${cmReal}*`,
       `📋 Entrega vuelo: *${entRow.hora}*`,
       `🚀 Push Back: *${pbRow.hora}*`,
-      paxLine, specs ? `📦 ${specs}` : "",
       obs ? `📝 ${obs}` : "", ``,
       clComplete ? `✅ Checklist completo` : `⚠️ Checklist ${clChecked}/${al.checklist.length}`,
       `_TAT Calculator · wsaico.com_`,
     ].filter(l => l !== "").join("\n");
-  }, [al, flightNum, gate, cmReal, entRow, pbRow, paxTotal, paxConn, paxVIP, paxUM, bagSilla, bagMasc, bagOv, obs, clComplete, clChecked]);
+  }, [al, flightNum, gate, cmReal, entRow, pbRow, obs, clComplete, clChecked]);
 
   const sendWA = () => window.open(`https://wa.me/?text=${encodeURIComponent(buildWA())}`, "_blank");
 
@@ -1006,8 +1043,7 @@ function CalcDur({ airlineKey, onLogout }) {
       flight: flightNum || "—", gate: gate || "—", airline: airlineKey,
       etd: pbRow.hora, cmPlan: cmReal, cmReal,
       pbPlan: pbRow.hora, pbReal: pbRow.hora, delta: 0,
-      obs: obs || "", paxTotal: paxTotal || "", paxConn: paxConn || "",
-      specials: [paxVIP && "VIP", paxUM && "UM", bagSilla && `${bagSilla} sillas`, bagMasc && `${bagMasc} masc.`, bagOv && `${bagOv} oversz`].filter(Boolean).join(", "),
+      obs: obs || "",
       penalty: "", clComplete,
     };
     saveHistory([entry, ...history].slice(0, 30));
@@ -1064,7 +1100,6 @@ function CalcDur({ airlineKey, onLogout }) {
                 <div key={l} style={{ textAlign: "center" }}><div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>{l}</div><div style={{ fontSize: 13, fontWeight: 800, color: txt, fontVariantNumeric: "tabular-nums" }}>{v}</div></div>
               ))}
             </div>
-            {h.paxTotal && <div style={{ fontSize: 10, color: mut, marginBottom: 3 }}>👥 {h.paxTotal} PAX{h.paxConn ? ` · ${h.paxConn} cx` : ""}{h.specials ? ` · ${h.specials}` : ""}</div>}
             {h.obs && <div style={{ fontSize: 10, color: mut, fontStyle: "italic", borderTop: `1px solid ${bdr}`, paddingTop: 5, marginTop: 4 }}>📝 {h.obs}</div>}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 7 }}>
               <span style={{ fontSize: 10, color: mut }}>{h.date} {h.time}</span>
@@ -1189,10 +1224,50 @@ function CalcDur({ airlineKey, onLogout }) {
       {/* ── HERO ── */}
       <div className="H" style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})` }}>
 
-        {/* Vuelo + Gate */}
-        <div className="H-flight-row">
+        {/* Flight + Gate + Mode Selector */}
+        <div className="H-flight-row" style={{ alignItems: "center" }}>
           <input className="H-fi" placeholder="N° Vuelo" value={flightNum} onChange={e => setFlightNum(e.target.value.toUpperCase())} style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }} />
           <input className="H-fi" placeholder="Gate" value={gate} onChange={e => setGate(e.target.value.toUpperCase())} style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", width: 68 }} />
+          
+          {/* Mode toggle button */}
+          <div style={{ display: "flex", background: "rgba(0,0,0,0.25)", padding: 2, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)" }}>
+            <button
+              onClick={() => setViewMode("timer")}
+              style={{
+                padding: "6px 9px",
+                borderRadius: 8,
+                border: "none",
+                background: viewMode === "timer" ? th.accent : "transparent",
+                color: viewMode === "timer" ? "#061A0C" : "rgba(255,255,255,0.6)",
+                fontFamily: "'Plus Jakarta Sans',sans-serif",
+                fontSize: 10,
+                fontWeight: 800,
+                cursor: "pointer",
+                transition: "all .15s",
+              }}
+              title="Modo con temporizador en vivo"
+            >
+              ⏱️ En Vivo
+            </button>
+            <button
+              onClick={() => setViewMode("gantt")}
+              style={{
+                padding: "6px 9px",
+                borderRadius: 8,
+                border: "none",
+                background: viewMode === "gantt" ? th.accent : "transparent",
+                color: viewMode === "gantt" ? "#061A0C" : "rgba(255,255,255,0.6)",
+                fontFamily: "'Plus Jakarta Sans',sans-serif",
+                fontSize: 10,
+                fontWeight: 800,
+                cursor: "pointer",
+                transition: "all .15s",
+              }}
+              title="Modo Carta Gantt (Secuencia limpia)"
+            >
+              📊 Gantt
+            </button>
+          </div>
         </div>
 
         {/* Dos cards: CM editable · ENT. VUELO auto-calculado */}
@@ -1200,38 +1275,40 @@ function CalcDur({ airlineKey, onLogout }) {
           <div className="H-inp-card">
             <span className="H-inp-lbl">HORA CM</span>
             <TI value={cmReal} onChange={v => { setCmReal(v); firedRef.current = {}; }} color="#fff" size={24} />
-            <span className="H-inp-sub">Hora de llegada</span>
+            <span className="H-inp-sub">Llegada (Corte Motor)</span>
           </div>
           <div className="H-inp-card" style={{ borderColor: `${th.accent}55`, pointerEvents: "none" }}>
             <span className="H-inp-lbl" style={{ color: th.accent }}>ENT. VUELO</span>
             <span style={{ fontSize: 24, fontWeight: 800, color: th.accent, fontVariantNumeric: "tabular-nums", letterSpacing: "1px", lineHeight: 1.1, textAlign: "center" }}>
               {entRow.hora}
             </span>
-            <span className="H-inp-sub">Entrega de vuelo</span>
+            <span className="H-inp-sub">CM + 28 min</span>
           </div>
         </div>
 
-        {/* ⏱ COUNTDOWN */}
-        <div className={`H-cd${cdUrgent ? " H-cd-u" : ""}`} style={{
-          background: cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(0,0,0,0.2)",
-          borderColor: cdUrgent ? "rgba(239,68,68,0.55)" : "rgba(255,255,255,0.1)",
-        }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: cdUrgent ? "#EF4444" : "rgba(255,255,255,0.35)", marginBottom: 1 }}>
-              {entPassed ? "Entrega hace" : "Entrega en"}
+        {/* ⏱ COUNTDOWN (Visible solo en Modo Timer) */}
+        {viewMode === "timer" && (
+          <div className={`H-cd${cdUrgent ? " H-cd-u" : ""}`} style={{
+            background: cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(0,0,0,0.2)",
+            borderColor: cdUrgent ? "rgba(239,68,68,0.55)" : "rgba(255,255,255,0.1)",
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: cdUrgent ? "#EF4444" : "rgba(255,255,255,0.35)", marginBottom: 1 }}>
+                {entPassed ? "Entrega hace" : "Entrega en"}
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", letterSpacing: "2px", color: cdUrgent ? "#EF4444" : entPassed ? "rgba(255,255,255,0.25)" : "#fff", lineHeight: 1 }}>
+                {cdStr}
+              </div>
+              <div style={{ fontSize: 10, color: th.accent, fontWeight: 700, marginTop: 2 }}>
+                Entrega: {entRow.hora} · PB: {pbRow.hora}
+              </div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", letterSpacing: "2px", color: cdUrgent ? "#EF4444" : entPassed ? "rgba(255,255,255,0.25)" : "#fff", lineHeight: 1 }}>
-              {cdStr}
-            </div>
-            <div style={{ fontSize: 10, color: th.accent, fontWeight: 700, marginTop: 2 }}>
-              Entrega: {entRow.hora} · PB: {pbRow.hora}
-            </div>
+            <button onClick={() => setShowCL(true)} style={{ background: clComplete ? "rgba(74,222,128,0.2)" : cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)", border: `1px solid ${clComplete ? "rgba(74,222,128,0.35)" : cdUrgent ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "8px 10px", cursor: "pointer", color: clComplete ? "#4ADE80" : cdUrgent ? "#EF4444" : "rgba(255,255,255,0.45)", fontFamily: "'Plus Jakarta Sans',sans-serif", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+              <span style={{ fontSize: 16 }}>{clComplete ? "✅" : "📋"}</span>
+              <span style={{ fontSize: 9, fontWeight: 700 }}>{clChecked}/{al.checklist.length}</span>
+            </button>
           </div>
-          <button onClick={() => setShowCL(true)} style={{ background: clComplete ? "rgba(74,222,128,0.2)" : cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)", border: `1px solid ${clComplete ? "rgba(74,222,128,0.35)" : cdUrgent ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "8px 10px", cursor: "pointer", color: clComplete ? "#4ADE80" : cdUrgent ? "#EF4444" : "rgba(255,255,255,0.45)", fontFamily: "'Plus Jakarta Sans',sans-serif", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-            <span style={{ fontSize: 16 }}>{clComplete ? "✅" : "📋"}</span>
-            <span style={{ fontSize: 9, fontWeight: 700 }}>{clChecked}/{al.checklist.length}</span>
-          </button>
-        </div>
+        )}
 
         {/* Strip de hitos clave */}
         <div style={{ display: "flex", gap: 5 }}>
@@ -1248,67 +1325,49 @@ function CalcDur({ airlineKey, onLogout }) {
         </div>
       </div>
 
-      {/* PAX toggle */}
-      <button onClick={() => setShowPax(s => !s)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "7px 14px", background: "none", border: "none", borderBottom: `1px solid ${bdr}`, cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7, color: mut }}>
-          {Ic.pax}
-          <span style={{ fontSize: 11, fontWeight: 700, color: txt }}>Info del vuelo</span>
-          {paxTotal && <span style={{ fontSize: 10, color: mut }}>· {paxTotal} PAX{paxConn ? ` · ${paxConn} cx` : ""}{paxVIP ? " · VIP" : ""}{paxUM ? " · UM" : ""}</span>}
-        </div>
-        <span style={{ fontSize: 11, color: mut }}>{showPax ? "▲" : "▼"}</span>
-      </button>
-      {showPax && (
-        <div style={{ padding: "10px 14px 12px", background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)", borderBottom: `1px solid ${bdr}` }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
-            {[["Total PAX", paxTotal, setPaxTotal], ["Conexiones", paxConn, setPaxConn]].map(([l, v, s]) => (
-              <div key={l}><label style={{ fontSize: 9, fontWeight: 700, color: mut, letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 4 }}>{l}</label><input type="number" min="0" placeholder="0" value={v} onChange={e => s(e.target.value)} style={{ width: "100%", padding: "8px 10px", border: `1px solid ${bdr}`, borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 700, color: txt, background: card, outline: "none" }} /></div>
-            ))}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 7, marginBottom: 8 }}>
-            {[["Sillas", bagSilla, setBagSilla], ["Mascotas", bagMasc, setBagMasc], ["Oversized", bagOv, setBagOv]].map(([l, v, s]) => (
-              <div key={l}><label style={{ fontSize: 9, fontWeight: 700, color: mut, letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 4 }}>{l}</label><input type="number" min="0" placeholder="0" value={v} onChange={e => s(e.target.value)} style={{ width: "100%", padding: "7px 8px", border: `1px solid ${bdr}`, borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 700, color: txt, background: card, outline: "none" }} /></div>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: 7 }}>
-            {[[paxVIP, setPaxVIP, "★ VIP"], [paxUM, setPaxUM, "👶 UM"]].map(([v, s, l]) => (
-              <button key={l} onClick={() => s(x => !x)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: `1.5px solid ${v ? th.accent : bdr}`, background: v ? `${th.accent}18` : card, color: v ? th.accent : mut, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{l}</button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── TABLA: DURACIÓN | HORA | HITO ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "52px 52px 1fr", gap: 4, padding: "6px 12px 4px", background: card, borderBottom: `1px solid ${bdr}`, position: "sticky", top: 0, zIndex: 5 }}>
+      {/* ── TABLA: DURACIÓN | HORA | HITO (Carta Gantt) ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "52px 52px 1fr", gap: 4, padding: "8px 12px 6px", background: card, borderBottom: `1px solid ${bdr}`, position: "sticky", top: 0, zIndex: 5 }}>
         {[["DUR.", true], ["HORA", true], ["HITO", false]].map(([l, center]) => (
-          <span key={l} style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: mut, textAlign: center ? "center" : "left" }}>{l}</span>
+          <span key={l} style={{ fontSize: 8, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: mut, textAlign: center ? "center" : "left" }}>{l}</span>
         ))}
       </div>
 
-      {/* FILAS DE HITOS */}
+      {/* FILAS DE HITOS CON RESALTE DE HITO ACTUAL */}
       <div className="ML">
         {rows.map((r, i) => {
-          const bg2 = r.isEnt ? (dark ? "rgba(74,222,128,0.08)"  : "#F0FDF4")
+          const bg2 = r.isCurrent
+                    ? (dark ? "rgba(37,99,235,0.22)" : "#EFF6FF")
+                    : r.isEnt ? (dark ? "rgba(74,222,128,0.08)"  : "#F0FDF4")
                     : r.isPb  ? (dark ? "rgba(129,140,248,0.08)" : "#EEF2FF")
                     : r.isCp  ? (dark ? "rgba(251,191,36,0.06)"  : "#FFFBEB")
                     : card;
-          const bl  = r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#F59E0B" : bdr;
-          const lbl = r.isEnt ? (dark ? "#86EFAC" : "#166534")
+          const bl  = r.isCurrent
+                    ? "#38BDF8"
+                    : r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#F59E0B" : bdr;
+          const lbl = r.isCurrent
+                    ? (dark ? "#7DD3FC" : "#0369A1")
+                    : r.isEnt ? (dark ? "#86EFAC" : "#166534")
                     : r.isPb  ? (dark ? "#A5B4FC" : "#3730A3")
                     : r.isCp  ? (dark ? "#FCD34D" : "#92400E")
                     : txt;
           return (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "52px 52px 1fr", gap: 4, alignItems: "center", background: bg2, borderRadius: 10, padding: "8px 10px", marginBottom: 4, borderLeft: `3px solid ${bl}`, animation: `rIn .15s ease ${i * 8}ms both` }}>
+            <div key={i} style={{ display: "grid", gridTemplateColumns: "52px 52px 1fr", gap: 4, alignItems: "center", background: bg2, borderRadius: 10, padding: "8px 10px", marginBottom: 4, borderLeft: `3px solid ${bl}`, border: r.isCurrent ? `1px solid ${dark ? "rgba(56,189,248,0.4)" : "rgba(37,99,235,0.3)"}` : undefined, animation: `rIn .15s ease ${i * 8}ms both` }}>
               <span style={{ fontSize: 11, fontWeight: 700, textAlign: "center", color: mut, fontVariantNumeric: "tabular-nums" }}>
                 {fmtDurMin(r.duracion)}
               </span>
-              <span style={{ fontSize: 12, fontWeight: 800, textAlign: "center", color: r.isEnt || r.isPb || r.isCp ? lbl : txt, fontVariantNumeric: "tabular-nums" }}>
+              <span style={{ fontSize: 12, fontWeight: 800, textAlign: "center", color: r.isCurrent || r.isEnt || r.isPb || r.isCp ? lbl : txt, fontVariantNumeric: "tabular-nums" }}>
                 {r.hora}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: bl, flexShrink: 0 }} />
-                <span style={{ fontSize: 11.5, fontWeight: r.isEnt || r.isPb || r.isCp ? 700 : 600, color: lbl, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <span style={{ fontSize: 11.5, fontWeight: r.isCurrent || r.isEnt || r.isPb || r.isCp ? 700 : 600, color: lbl, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {r.label}
                 </span>
+                {r.isCurrent && (
+                  <span style={{ marginLeft: "auto", fontSize: 8, fontWeight: 800, letterSpacing: "0.5px", padding: "2px 6px", borderRadius: 6, background: "#38BDF8", color: "#0F172A", textTransform: "uppercase" }}>
+                    Actual
+                  </span>
+                )}
               </div>
             </div>
           );
@@ -1326,7 +1385,7 @@ function CalcDur({ airlineKey, onLogout }) {
 
       {/* Bottom bar */}
       <div className="B" style={{ background: card, borderColor: bdr }}>
-        <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setFlightNum(""); setGate(""); setObs(""); setPaxTotal(""); setPaxConn(""); setPaxVIP(false); setPaxUM(false); setBagSilla(""); setBagMasc(""); setBagOv(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
+        <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setFlightNum(""); setGate(""); setObs(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
           {Ic.reset}<span>Reset</span>
         </button>
         <button onClick={() => setShowWA(true)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, margin: "0 6px", background: "linear-gradient(135deg,#128C7E,#25D366)", border: "none", borderRadius: 14, height: 44, cursor: "pointer", color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 800, boxShadow: "0 3px 12px rgba(37,211,102,0.35)" }}>
