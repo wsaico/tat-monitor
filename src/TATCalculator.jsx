@@ -20,6 +20,216 @@ const hhmm2ts = hhmm => {
   return d.getTime();
 };
 
+/* ─── AVIATION AUDIO CHIME & HAPTICS (Web Audio API) ───────────── */
+function playAviationChime(type = "chime") {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") ctx.resume();
+    const now = ctx.currentTime;
+
+    if (type === "chime") {
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      const gain2 = ctx.createGain();
+
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(852, now);
+      gain1.gain.setValueAtTime(0.12, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(659.25, now + 0.22);
+      gain2.gain.setValueAtTime(0.12, now + 0.22);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+
+      osc1.connect(gain1); gain1.connect(ctx.destination);
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+
+      osc1.start(now); osc1.stop(now + 0.5);
+      osc2.start(now + 0.22); osc2.stop(now + 0.8);
+    } else if (type === "alert") {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.35);
+    } else if (type === "tap") {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(1200, now);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.09);
+    }
+  } catch (_) {}
+}
+
+const triggerFeedback = (type = "chime") => {
+  playAviationChime(type);
+  if (navigator.vibrate) {
+    if (type === "alert") navigator.vibrate([120, 60, 120]);
+    else if (type === "tap") navigator.vibrate(25);
+    else navigator.vibrate(45);
+  }
+};
+
+/* ─── SCREEN WAKE LOCK (Pantalla siempre activa en rampa) ────────── */
+function useWakeLock() {
+  const [wakeLockActive, setWakeLockActive] = useState(false);
+  const wakeLockRef = useRef(null);
+
+  const requestLock = async () => {
+    if ("wakeLock" in navigator) {
+      try {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+        setWakeLockActive(true);
+        wakeLockRef.current.addEventListener("release", () => setWakeLockActive(false));
+      } catch (err) {
+        console.warn("WakeLock error:", err);
+      }
+    }
+  };
+
+  const releaseLock = async () => {
+    if (wakeLockRef.current) {
+      try { await wakeLockRef.current.release(); } catch (_) {}
+      wakeLockRef.current = null;
+      setWakeLockActive(false);
+    }
+  };
+
+  const toggleWakeLock = () => {
+    triggerFeedback("tap");
+    if (wakeLockActive) releaseLock();
+    else requestLock();
+  };
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && wakeLockActive) requestLock();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      releaseLock();
+    };
+  }, [wakeLockActive]);
+
+  return { wakeLockActive, toggleWakeLock };
+}
+
+/* ─── FASES OPERATIVAS DEL TURNAROUND ───────────────────────────── */
+function getTatPhase(minsSinceCm, totalTat) {
+  if (minsSinceCm < 0) return { name: "Por Llegar / Calzos", color: "#94A3B8", pct: 0 };
+  const pct = Math.min(100, Math.max(0, Math.round((minsSinceCm / totalTat) * 100)));
+  if (pct >= 100) return { name: "Push Back Completado", color: "#4ADE80", pct: 100 };
+  if (pct < 28) return { name: "Desembarque & Bodegas", color: "#38BDF8", pct };
+  if (pct < 45) return { name: "Limpieza & Servicios", color: "#F59E0B", pct };
+  if (pct < 82) return { name: "Embarque de Pasajeros", color: "#818CF8", pct };
+  return { name: "Cierre & Entrega de Vuelo", color: "#F43F5E", pct };
+}
+
+/* ─── DIAGRAMA GANTT VISUAL OPERACIONAL ─────────────────────────── */
+function GanttChartVisual({ cmReal, totalTat = 35, accent = "#4ADE80", dark = true }) {
+  const nowMinsVal = toMins(nowHHMM());
+  const cmMins = toMins(cmReal);
+  const elapsed = nowMinsVal - cmMins;
+  const nowPct = Math.min(100, Math.max(0, (elapsed / totalTat) * 100));
+  const isOngoing = elapsed >= 0 && elapsed <= totalTat;
+
+  const blocks = [
+    { label: "Desembarque", start: 2, end: Math.min(10, Math.round(totalTat * 0.28)), color: "#38BDF8" },
+    { label: "Servicios", start: Math.round(totalTat * 0.28), end: Math.round(totalTat * 0.42), color: "#F59E0B" },
+    { label: "Embarque", start: Math.round(totalTat * 0.32), end: Math.round(totalTat * 0.82), color: "#818CF8" },
+    { label: "Cierre / PB", start: Math.round(totalTat * 0.80), end: totalTat, color: accent },
+  ];
+
+  return (
+    <div style={{ background: dark ? "rgba(15,23,42,0.65)" : "#FFFFFF", borderRadius: 12, border: `1px solid ${dark ? "#334155" : "#E2E8F0"}`, padding: "10px 12px", margin: "6px 12px 8px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase", color: dark ? "#94A3B8" : "#64748B", display: "flex", alignItems: "center", gap: 5 }}>
+          {Ic.chart} GANTT OPERACIONAL
+        </span>
+        <span style={{ fontSize: 9, fontWeight: 700, color: isOngoing ? "#EF4444" : dark ? "#64748B" : "#94A3B8" }}>
+          {isOngoing ? `EN CURSO: +${elapsed} MIN` : `DURACIÓN: ${totalTat} MIN`}
+        </span>
+      </div>
+
+      {/* Grid scale */}
+      <div style={{ position: "relative", width: "100%", height: 16, borderBottom: `1px dashed ${dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)"}`, marginBottom: 6, display: "flex", justifyContent: "space-between", fontSize: 8, fontWeight: 700, color: dark ? "#64748B" : "#94A3B8", fontVariantNumeric: "tabular-nums" }}>
+        <span>0'</span>
+        <span>+{Math.round(totalTat * 0.25)}'</span>
+        <span>+{Math.round(totalTat * 0.5)}'</span>
+        <span>+{Math.round(totalTat * 0.75)}'</span>
+        <span>+{totalTat}'</span>
+      </div>
+
+      {/* Gantt Track Area */}
+      <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6, padding: "2px 0 4px" }}>
+        {/* NOW Line (cursor vertical) */}
+        {isOngoing && (
+          <div style={{
+            position: "absolute",
+            top: -20,
+            bottom: 0,
+            left: `${nowPct}%`,
+            width: 2,
+            background: "#EF4444",
+            zIndex: 10,
+            boxShadow: "0 0 8px #EF4444",
+            pointerEvents: "none",
+          }}>
+            <div style={{ position: "absolute", top: 0, left: -14, background: "#EF4444", color: "#fff", fontSize: 7, fontWeight: 800, padding: "1px 3px", borderRadius: 3, letterSpacing: "0.5px" }}>
+              NOW
+            </div>
+          </div>
+        )}
+
+        {blocks.map(b => {
+          const leftPct = (b.start / totalTat) * 100;
+          const widthPct = Math.max(10, ((b.end - b.start) / totalTat) * 100);
+          return (
+            <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 8, height: 18 }}>
+              <span style={{ width: 72, fontSize: 9, fontWeight: 700, color: dark ? "#CBD5E1" : "#475569", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {b.label}
+              </span>
+              <div style={{ flex: 1, position: "relative", height: 14, background: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{
+                  position: "absolute",
+                  left: `${leftPct}%`,
+                  width: `${widthPct}%`,
+                  top: 0,
+                  bottom: 0,
+                  background: b.color,
+                  borderRadius: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 7.5,
+                  fontWeight: 800,
+                  color: "#0F172A",
+                  boxShadow: `0 1px 4px ${b.color}44`,
+                }}>
+                  {b.end - b.start}'
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ─── TEXT TIME INPUT ────────────────────────────────────────────── */
 function TI({ value, onChange, color = "#fff", size = 24 }) {
   const [raw, setRaw] = useState(value || "");
@@ -285,11 +495,25 @@ function Calc({ airlineKey, onLogout }) {
 
   // Notificaciones ya disparadas (para no repetir)
   const firedRef = useRef({});
+  const { wakeLockActive, toggleWakeLock } = useWakeLock();
+
+  const handleToggleCl = i => {
+    setClDone(p => {
+      const nextVal = !p[i];
+      const newDone = { ...p, [i]: nextVal };
+      const checkedCount = Object.values(newDone).filter(Boolean).length;
+      if (checkedCount === al.checklist.length) triggerFeedback("chime");
+      else triggerFeedback("tap");
+      return newDone;
+    });
+  };
 
   /* ── Calculations ────────────────────────────────────────────── */
   const cmPlan = addMins(etdItin, -al.tat);
   const cmDelta = subT(cmPlan, cmReal);
   const nowMinsVal = toMins(nowHHMM());
+  const minsSinceCm = nowMinsVal - toMins(cmReal);
+  const tatPhase = getTatPhase(minsSinceCm, al.tat);
   const rows = al.ms.map((m, i) => {
     const real = addMins(cmReal, m.planOff);
     const plan = addMins(cmPlan, m.planOff);
@@ -488,6 +712,27 @@ function Calc({ airlineKey, onLogout }) {
             <div style={{ fontSize: 12, marginTop: 4 }}>Guarda vuelos desde la calculadora</div>
           </div>
         )}
+        {history.length > 0 && (() => {
+          const ontime = history.filter(h => h.delta <= 0).length;
+          const otp = Math.round((ontime / history.length) * 100);
+          const totalDel = history.reduce((acc, h) => acc + (h.delta > 0 ? h.delta : 0), 0);
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 12, background: card, borderRadius: 12, padding: "10px 8px", border: `1px solid ${bdr}` }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>VUELOS</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: txt }}>{history.length}</div>
+              </div>
+              <div style={{ textAlign: "center", borderLeft: `1px solid ${bdr}`, borderRight: `1px solid ${bdr}` }}>
+                <div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>OTP (A TIEMPO)</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: otp >= 85 ? "#4ADE80" : otp >= 70 ? "#F59E0B" : "#EF4444" }}>{otp}%</div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>DEMORA NETA</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: totalDel > 0 ? "#EF4444" : "#4ADE80" }}>{totalDel > 0 ? `+${totalDel}'` : "0'"}</div>
+              </div>
+            </div>
+          );
+        })()}
         {history.map(h => {
           const lt = h.delta > 0, el = h.delta < 0;
           const sc = lt ? "#EF4444" : el ? "#4ADE80" : mut;
@@ -581,7 +826,7 @@ function Calc({ airlineKey, onLogout }) {
               <div style={{ height: "100%", width: `${(clChecked / al.checklist.length) * 100}%`, background: clComplete ? "#4ADE80" : th.accent, borderRadius: 3, transition: "width .3s" }} />
             </div>
             {al.checklist.map((item, i) => (
-              <button key={i} onClick={() => setClDone(p => ({ ...p, [i]: !p[i] }))} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 0", background: "none", border: "none", borderBottom: `1px solid ${bdr}`, cursor: "pointer", textAlign: "left" }}>
+              <button key={i} onClick={() => handleToggleCl(i)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 0", background: "none", border: "none", borderBottom: `1px solid ${bdr}`, cursor: "pointer", textAlign: "left" }}>
                 <span style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${clDone[i] ? "#4ADE80" : bdr}`, background: clDone[i] ? "#4ADE80" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .15s" }}>
                   {clDone[i] && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
                 </span>
@@ -645,6 +890,16 @@ function Calc({ airlineKey, onLogout }) {
             style={{ color: notifOk ? "#4ADE80" : "rgba(255,255,255,0.3)" }}>
             {notifOk ? Ic.bell : Ic.bellOff}
           </button>
+          {/* Mantener pantalla activa en rampa (Wake Lock) */}
+          <button
+            className="N-ico-btn"
+            onClick={toggleWakeLock}
+            title={wakeLockActive ? "Pantalla siempre activa (ON)" : "Mantener pantalla encendida"}
+            style={{ color: wakeLockActive ? "#FBBF24" : "rgba(255,255,255,0.3)" }}
+          >
+            {wakeLockActive ? Ic.sun : Ic.moon}
+            {wakeLockActive && <span style={{ position: "absolute", bottom: 2, right: 2, width: 5, height: 5, borderRadius: "50%", background: "#FBBF24" }} />}
+          </button>
           <span className="N-cd" style={{ color: th.accent }}>{al.code}</span>
           <button className="N-out" onClick={onLogout}>{Ic.logout}</button>
         </div>
@@ -684,17 +939,27 @@ function Calc({ airlineKey, onLogout }) {
           {penalty && <span style={{ fontSize: 10.5, fontWeight: 800, color: "#F59E0B", whiteSpace: "nowrap", flexShrink: 0, letterSpacing: "0.5px" }}>PENALIDAD: USD {penalty}</span>}
         </div>
 
-        {/* Time inputs */}
+        {/* Time inputs con Quick Steppers */}
         <div className="H-inp-row">
           <div className="H-inp-card">
             <span className="H-inp-lbl">CM REAL</span>
             <TI value={cmReal} onChange={setCmReal} color="#fff" size={24} />
             <span className="H-inp-sub">hora llegada real</span>
+            <div className="H-quick-row">
+              <button onClick={() => { setCmReal(addMins(cmReal, -5)); firedRef.current = {}; triggerFeedback("tap"); }} className="H-quick-btn" title="-5 min">-5'</button>
+              <button onClick={() => { setCmReal(nowHHMM()); firedRef.current = {}; triggerFeedback("chime"); }} className="H-quick-btn H-quick-now" title="Estampar hora actual">Ahora</button>
+              <button onClick={() => { setCmReal(addMins(cmReal, 5)); firedRef.current = {}; triggerFeedback("tap"); }} className="H-quick-btn" title="+5 min">+5'</button>
+            </div>
           </div>
           <div className="H-inp-card" style={{ borderColor: `${th.accent}55` }}>
             <span className="H-inp-lbl" style={{ color: th.accent }}>ETD ITINERARIO</span>
             <TI value={etdItin} onChange={setEtdItin} color={th.accent} size={24} />
             <span className="H-inp-sub">despegue programado</span>
+            <div className="H-quick-row">
+              <button onClick={() => { setEtdItin(addMins(etdItin, -5)); firedRef.current = {}; triggerFeedback("tap"); }} className="H-quick-btn" title="-5 min">-5'</button>
+              <button onClick={() => { setEtdItin(addMins(nowHHMM(), al.tat)); firedRef.current = {}; triggerFeedback("tap"); }} className="H-quick-btn" title="ETD = Ahora + TAT">Std</button>
+              <button onClick={() => { setEtdItin(addMins(etdItin, 5)); firedRef.current = {}; triggerFeedback("tap"); }} className="H-quick-btn" title="+5 min">+5'</button>
+            </div>
           </div>
         </div>
 
@@ -714,6 +979,30 @@ function Calc({ airlineKey, onLogout }) {
               <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{clComplete ? Ic.checkCircle : Ic.list}</span>
               <span style={{ fontSize: 9, fontWeight: 700 }}>{clChecked}/{al.checklist.length}</span>
             </button>
+          </div>
+        )}
+
+        {/* Cockpit Timeline & Progress Bar (Modo En Vivo) */}
+        {viewMode === "timer" && (
+          <div style={{ background: "rgba(0,0,0,0.25)", borderRadius: 12, padding: "8px 10px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 7 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+              <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 5 }}>
+                FASE: <b style={{ color: tatPhase.color }}>{tatPhase.name}</b>
+              </span>
+              <span style={{ fontSize: 9.5, fontWeight: 800, color: th.accent, fontVariantNumeric: "tabular-nums" }}>
+                {tatPhase.pct}% TAT
+              </span>
+            </div>
+            <div style={{ width: "100%", height: 5, background: "rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden", position: "relative" }}>
+              <div style={{
+                width: `${tatPhase.pct}%`,
+                height: "100%",
+                background: `linear-gradient(90deg, ${tatPhase.color}88, ${tatPhase.color})`,
+                borderRadius: 10,
+                transition: "width 0.4s ease",
+                boxShadow: `0 0 8px ${tatPhase.color}88`
+              }} />
+            </div>
           </div>
         )}
 
@@ -741,6 +1030,11 @@ function Calc({ airlineKey, onLogout }) {
           ))}
         </div>
       </div>
+
+      {/* Visual Gantt Chart (Visible solo en Modo Gantt) */}
+      {viewMode === "gantt" && (
+        <GanttChartVisual cmReal={cmReal} totalTat={al.tat} accent={th.accent} dark={dark} />
+      )}
 
       {/* TABLE HEADER */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 40px", gap: 4, padding: "6px 12px 4px", background: card, borderBottom: `1px solid ${bdr}`, position: "sticky", top: 0, zIndex: 5 }}>
@@ -929,12 +1223,26 @@ function CalcDur({ airlineKey, onLogout }) {
   const [showWA, setShowWA] = useState(false);
   const capRef   = useRef(null);
   const firedRef = useRef({});
+  const { wakeLockActive, toggleWakeLock } = useWakeLock();
+
+  const handleToggleCl = i => {
+    setClDone(p => {
+      const nextVal = !p[i];
+      const newDone = { ...p, [i]: nextVal };
+      const checkedCount = Object.values(newDone).filter(Boolean).length;
+      if (checkedCount === al.checklist.length) triggerFeedback("chime");
+      else triggerFeedback("tap");
+      return newDone;
+    });
+  };
 
   /* ── Cálculos ───────────────────────────────────────────────────── */
   // duración = delta de planOff entre hito actual y el anterior
   const fmtDurMin = mins => `${p2(Math.floor(mins / 60))}:${p2(mins % 60)}`;
 
   const nowMinsVal = toMins(nowHHMM());
+  const minsSinceCm = nowMinsVal - toMins(cmReal);
+  const tatPhase = getTatPhase(minsSinceCm, al.tat || 35);
   const rows = al.ms.map((m, i) => {
     const hora = addMins(cmReal, m.planOff);
     const hMins = toMins(hora);
@@ -1074,6 +1382,21 @@ function CalcDur({ airlineKey, onLogout }) {
             <div style={{ fontSize: 12, marginTop: 4 }}>Guarda vuelos desde la calculadora</div>
           </div>
         )}
+        {history.length > 0 && (() => {
+          const ontime = history.filter(h => h.delta <= 0).length;
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 12, background: card, borderRadius: 12, padding: "10px 8px", border: `1px solid ${bdr}` }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>VUELOS DEL TURNO</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: txt }}>{history.length}</div>
+              </div>
+              <div style={{ textAlign: "center", borderLeft: `1px solid ${bdr}` }}>
+                <div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>OPERADOS OK</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#4ADE80" }}>{ontime}</div>
+              </div>
+            </div>
+          );
+        })()}
         {history.map(h => (
           <div key={h.id} style={{ background: card, borderRadius: 12, padding: "12px 14px", marginBottom: 8, border: `1px solid ${bdr}` }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
@@ -1149,7 +1472,7 @@ function CalcDur({ airlineKey, onLogout }) {
               <div style={{ height: "100%", width: `${(clChecked / al.checklist.length) * 100}%`, background: clComplete ? "#4ADE80" : th.accent, borderRadius: 3, transition: "width .3s" }} />
             </div>
             {al.checklist.map((item, i) => (
-              <button key={i} onClick={() => setClDone(p => ({ ...p, [i]: !p[i] }))} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 0", background: "none", border: "none", borderBottom: `1px solid ${bdr}`, cursor: "pointer", textAlign: "left" }}>
+              <button key={i} onClick={() => handleToggleCl(i)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 0", background: "none", border: "none", borderBottom: `1px solid ${bdr}`, cursor: "pointer", textAlign: "left" }}>
                 <span style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${clDone[i] ? "#4ADE80" : bdr}`, background: clDone[i] ? "#4ADE80" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .15s" }}>
                   {clDone[i] && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
                 </span>
@@ -1204,6 +1527,16 @@ function CalcDur({ airlineKey, onLogout }) {
           <button className="N-ico-btn" onClick={() => setShowCfg(true)} title={notifOk ? "Notificaciones activas" : "Activar notificaciones"} style={{ color: notifOk ? "#4ADE80" : "rgba(255,255,255,0.3)" }}>
             {notifOk ? Ic.bell : Ic.bellOff}
           </button>
+          {/* Mantener pantalla activa en rampa (Wake Lock) */}
+          <button
+            className="N-ico-btn"
+            onClick={toggleWakeLock}
+            title={wakeLockActive ? "Pantalla siempre activa (ON)" : "Mantener pantalla encendida"}
+            style={{ color: wakeLockActive ? "#FBBF24" : "rgba(255,255,255,0.3)" }}
+          >
+            {wakeLockActive ? Ic.sun : Ic.moon}
+            {wakeLockActive && <span style={{ position: "absolute", bottom: 2, right: 2, width: 5, height: 5, borderRadius: "50%", background: "#FBBF24" }} />}
+          </button>
           <span className="N-cd" style={{ color: th.accent }}>{al.code}</span>
           <button className="N-out" onClick={onLogout}>{Ic.logout}</button>
         </div>
@@ -1242,6 +1575,11 @@ function CalcDur({ airlineKey, onLogout }) {
             <span className="H-inp-lbl">HORA CM</span>
             <TI value={cmReal} onChange={v => { setCmReal(v); firedRef.current = {}; }} color="#fff" size={24} />
             <span className="H-inp-sub">Llegada (Corte Motor)</span>
+            <div className="H-quick-row">
+              <button onClick={() => { setCmReal(addMins(cmReal, -5)); firedRef.current = {}; triggerFeedback("tap"); }} className="H-quick-btn" title="-5 min">-5'</button>
+              <button onClick={() => { setCmReal(nowHHMM()); firedRef.current = {}; triggerFeedback("chime"); }} className="H-quick-btn H-quick-now" title="Estampar hora actual">Ahora</button>
+              <button onClick={() => { setCmReal(addMins(cmReal, 5)); firedRef.current = {}; triggerFeedback("tap"); }} className="H-quick-btn" title="+5 min">+5'</button>
+            </div>
           </div>
           <div className="H-inp-card" style={{ borderColor: `${th.accent}55`, pointerEvents: "none" }}>
             <span className="H-inp-lbl" style={{ color: th.accent }}>ENT. VUELO</span>
@@ -1276,6 +1614,30 @@ function CalcDur({ airlineKey, onLogout }) {
           </div>
         )}
 
+        {/* Cockpit Timeline & Progress Bar (Modo En Vivo) */}
+        {viewMode === "timer" && (
+          <div style={{ background: "rgba(0,0,0,0.25)", borderRadius: 12, padding: "8px 10px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 7 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+              <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 5 }}>
+                FASE: <b style={{ color: tatPhase.color }}>{tatPhase.name}</b>
+              </span>
+              <span style={{ fontSize: 9.5, fontWeight: 800, color: th.accent, fontVariantNumeric: "tabular-nums" }}>
+                {tatPhase.pct}% TAT
+              </span>
+            </div>
+            <div style={{ width: "100%", height: 5, background: "rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden", position: "relative" }}>
+              <div style={{
+                width: `${tatPhase.pct}%`,
+                height: "100%",
+                background: `linear-gradient(90deg, ${tatPhase.color}88, ${tatPhase.color})`,
+                borderRadius: 10,
+                transition: "width 0.4s ease",
+                boxShadow: `0 0 8px ${tatPhase.color}88`
+              }} />
+            </div>
+          </div>
+        )}
+
         {/* Strip de hitos clave */}
         <div style={{ display: "flex", gap: 5 }}>
           {[
@@ -1290,6 +1652,11 @@ function CalcDur({ airlineKey, onLogout }) {
           ))}
         </div>
       </div>
+
+      {/* Visual Gantt Chart (Visible solo en Modo Gantt) */}
+      {viewMode === "gantt" && (
+        <GanttChartVisual cmReal={cmReal} totalTat={al.tat || 35} accent={th.accent} dark={dark} />
+      )}
 
       {/* ── TABLA: DURACIÓN | HORA | HITO (Carta Gantt) ── */}
       <div style={{ display: "grid", gridTemplateColumns: "52px 52px 1fr", gap: 4, padding: "8px 12px 6px", background: card, borderBottom: `1px solid ${bdr}`, position: "sticky", top: 0, zIndex: 5 }}>
@@ -1490,6 +1857,11 @@ body,#root{background:#03060F;color:#fff;font-family:'Plus Jakarta Sans',sans-se
 .H-inp-card{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:9px 8px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .H-inp-lbl{font-size:7.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,0.4);}
 .H-inp-sub{font-size:7.5px;color:rgba(255,255,255,0.2);}
+.H-quick-row{display:flex;gap:4px;width:100%;margin-top:5px;}
+.H-quick-btn{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:3px 0;font-family:'Plus Jakarta Sans',sans-serif;font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.7);cursor:pointer;transition:all .12s;text-align:center;}
+.H-quick-btn:hover{background:rgba(255,255,255,0.18);color:#fff;}
+.H-quick-btn:active{transform:scale(0.92);}
+.H-quick-now{background:rgba(255,255,255,0.18);color:#fff;font-weight:800;border-color:rgba(255,255,255,0.25);}
 .H-cd{display:flex;align-items:center;gap:10px;border-radius:12px;border:1px solid;padding:10px 12px;margin-bottom:7px;transition:all .3s;}
 .H-cd-u{animation:cdpulse 1.1s ease-in-out infinite;}
 @keyframes cdpulse{0%,100%{opacity:1;}50%{opacity:0.65;}}
