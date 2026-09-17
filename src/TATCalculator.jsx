@@ -141,6 +141,10 @@ const Ic = {
   trash: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></svg>,
   moon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>,
   sun: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>,
+  timer: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="14" r="8" /><line x1="12" y1="10" x2="12" y2="14" /><path d="M12 2v4" /><path d="M10 2h4" /></svg>,
+  chart: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="15" y2="6" /><line x1="6" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="18" y2="18" /></svg>,
+  checkCircle: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>,
+  copy: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>,
   heart: <svg width="11" height="11" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>,
 };
 
@@ -338,18 +342,18 @@ function Calc({ airlineKey, onLogout }) {
 
   /* ── WhatsApp text builder ────────────────────────────────────── */
   const buildWA = useCallback(() => {
-    const status = isLate ? `⚠️ DEMORADO +${fmtDur(cmDelta)}` : isEarly ? `✅ ADELANTADO ${fmtDur(-cmDelta)}` : `✅ EN TIEMPO`;
+    const status = isLate ? `ESTADO: DEMORADO +${fmtDur(cmDelta)}` : isEarly ? `ESTADO: ADELANTADO -${fmtDur(-cmDelta)}` : `ESTADO: A TIEMPO`;
     return [
-      `✈️ *${al.code}${flightNum ? ` ${flightNum}` : ""}*${gate ? ` | Gate ${gate}` : ""}`,
-      `📅 ${new Date().toLocaleDateString("es-PE")} ${nowHHMM()}`, ``,
-      `🕐 ETD Itinerario: *${etdItin}*`,
-      `🛬 CM Real: *${cmReal}* (Plan: ${cmPlan})`,
-      `📋 Entrega vuelo: *${entRow.real}* (Plan: ${entRow.plan})`,
-      `🚀 Push Back: *${pbRow.real}* (Plan: ${pbRow.plan})`,
-      penalty ? `💰 Penalidad est.: USD ${penalty}` : "", ``,
+      `*TAT DISPATCH — ${al.code}${flightNum ? ` ${flightNum}` : ""}*${gate ? ` | GATE ${gate}` : ""}`,
+      `FECHA: ${new Date().toLocaleDateString("es-PE")} ${nowHHMM()}`, ``,
+      `ETD ITINERARIO: *${etdItin}*`,
+      `CM REAL: *${cmReal}* (PLAN: ${cmPlan})`,
+      `ENTREGA DE VUELO: *${entRow.real}* (PLAN: ${entRow.plan})`,
+      `PUSH BACK: *${pbRow.real}* (PLAN: ${pbRow.plan})`,
+      penalty ? `PENALIDAD: USD ${penalty}` : "", ``,
       status,
-      obs ? `📝 ${obs}` : "", ``,
-      clComplete ? `✅ Checklist completo` : `⚠️ Checklist ${clChecked}/${al.checklist.length}`,
+      obs ? `OBSERVACIONES: ${obs}` : "", ``,
+      `CHECKLIST: ${clComplete ? "COMPLETO" : `${clChecked}/${al.checklist.length}`}`,
       `_TAT Calculator · wsaico.com_`,
     ].filter(l => l !== "").join("\n");
   }, [al, flightNum, gate, etdItin, cmReal, cmPlan, entRow, pbRow, isLate, isEarly, cmDelta, penalty, obs, clComplete, clChecked]);
@@ -366,8 +370,8 @@ function Calc({ airlineKey, onLogout }) {
       // Alerta configurable antes del Push back
       {
         id: "pre-pb",
-        title: `🚀 ${alertAt} min para Push Back`,
-        body: `${flightLabel} — PB a las ${pbRow.real}. ¡Completa el checklist!`,
+        title: `${alertAt} min para Push Back`,
+        body: `${flightLabel} — PB a las ${pbRow.real}. Checklist pendiente.`,
         fireAt: hhmm2ts(pbRow.real) - alertAt * 60 * 1000,
         tag: "tat-pre-pb",
         waText,
@@ -375,8 +379,8 @@ function Calc({ airlineKey, onLogout }) {
       // Entrega de vuelo (exacta)
       {
         id: "ent",
-        title: `📋 ¡Hora de entregar el vuelo!`,
-        body: `${flightLabel} — Entrega a las ${entRow.real}. Cierre de puertas: ${cpRow?.real || "—"}`,
+        title: `Entrega de vuelo ahora`,
+        body: `${flightLabel} — Entrega: ${entRow.real}. Cierre puertas: ${cpRow?.real || "—"}`,
         fireAt: hhmm2ts(entRow.real),
         tag: "tat-ent",
         waText,
@@ -384,7 +388,7 @@ function Calc({ airlineKey, onLogout }) {
       // Cierre de puertas
       {
         id: "cp",
-        title: `🚪 Cierre de puertas`,
+        title: `Cierre de puertas`,
         body: `${flightLabel} — Cerrar puertas ahora. Push Back: ${pbRow.real}`,
         fireAt: hhmm2ts(cpRow?.real || pbRow.real),
         tag: "tat-cp",
@@ -393,8 +397,8 @@ function Calc({ airlineKey, onLogout }) {
       // Push back exacto
       {
         id: "pb",
-        title: `🛫 Push Back — ${pbRow.real}`,
-        body: `${flightLabel} — ETD: ${etdItin}. ${isLate ? `⚠️ ${fmt(cmDelta)} de atraso` : "✅ En tiempo"}`,
+        title: `Push Back — ${pbRow.real}`,
+        body: `${flightLabel} — ETD: ${etdItin}. ${isLate ? `Demora de +${fmt(cmDelta)}` : "A tiempo"}`,
         fireAt: hhmm2ts(pbRow.real),
         tag: "tat-pb",
         waText,
@@ -410,10 +414,10 @@ function Calc({ airlineKey, onLogout }) {
     if (!notifOk) return;
     const now = Date.now();
     const checks = [
-      { key: "ent", ts: hhmm2ts(entRow.real), title: `📋 ¡Entregar vuelo ahora!`, body: `${al.code}${flightNum ? " " + flightNum : ""} — ${entRow.real}` },
-      { key: "cp", ts: hhmm2ts(cpRow?.real || pbRow.real), title: `🚪 Cerrar puertas`, body: `${al.code}${flightNum ? " " + flightNum : ""} — PB a las ${pbRow.real}` },
-      { key: "pb", ts: hhmm2ts(pbRow.real), title: `🛫 Push Back`, body: `${al.code}${flightNum ? " " + flightNum : ""} — ETD ${etdItin}` },
-      { key: "pre", ts: hhmm2ts(pbRow.real) - alertAt * 60 * 1000, title: `⏱ ${alertAt} min para PB`, body: `${al.code}${flightNum ? " " + flightNum : ""} — ¡Checklist!` },
+      { key: "ent", ts: hhmm2ts(entRow.real), title: `Entrega de vuelo ahora`, body: `${al.code}${flightNum ? " " + flightNum : ""} — ${entRow.real}` },
+      { key: "cp", ts: hhmm2ts(cpRow?.real || pbRow.real), title: `Cierre de puertas`, body: `${al.code}${flightNum ? " " + flightNum : ""} — PB a las ${pbRow.real}` },
+      { key: "pb", ts: hhmm2ts(pbRow.real), title: `Push Back`, body: `${al.code}${flightNum ? " " + flightNum : ""} — ETD ${etdItin}` },
+      { key: "pre", ts: hhmm2ts(pbRow.real) - alertAt * 60 * 1000, title: `${alertAt} min para Push Back`, body: `${al.code}${flightNum ? " " + flightNum : ""} — Checklist pendiente` },
     ];
     checks.forEach(c => {
       if (!firedRef.current[c.key] && Math.abs(now - c.ts) < 30000) {
@@ -447,8 +451,8 @@ function Calc({ airlineKey, onLogout }) {
     const lates = history.filter(h => h.delta > 0).length;
     const ontime = history.filter(h => h.delta <= 0).length;
     const avgD = history.length ? Math.round(history.reduce((a, h) => a + h.delta, 0) / history.length) : 0;
-    const tableRows = history.map(h => { const lt = h.delta > 0, el = h.delta < 0; return `<tr><td>${h.date} ${h.time}</td><td><b>${h.airline} ${h.flight}</b></td><td>${h.gate}</td><td>${h.etd}</td><td>${h.cmReal}</td><td>${h.pbReal}</td><td style="color:${lt ? "#EF4444" : el ? "#16a34a" : "#94A3B8"};font-weight:700">${h.delta === 0 ? "✅" : lt ? `⚠️ +${fmtDur(h.delta)}` : `✅ −${fmtDur(-h.delta)}`}</td><td>${h.penalty ? `USD ${h.penalty}` : "-"}</td></tr>`; }).join("");
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title><style>body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1E293B;font-size:13px;}h1{font-size:22px;margin-bottom:4px;}h2{font-size:14px;color:#64748B;font-weight:400;margin-bottom:24px;}.kpis{display:flex;gap:16px;margin-bottom:24px;}.kpi{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px 18px;text-align:center;}.kpi-v{font-size:24px;font-weight:800;}.kpi-l{font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#64748B;}td{padding:8px 10px;border-bottom:1px solid #F1F5F9;font-size:12px;}.ft{margin-top:32px;font-size:10px;color:#94A3B8;text-align:center;border-top:1px solid #E2E8F0;padding-top:12px;}</style></head><body><h1>✈️ Reporte de Turno — ${al.name}</h1><h2>${new Date().toLocaleDateString("es-PE", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h2><div class="kpis"><div class="kpi"><div class="kpi-v">${history.length}</div><div class="kpi-l">Vuelos</div></div><div class="kpi"><div class="kpi-v" style="color:#16a34a">${ontime}</div><div class="kpi-l">A tiempo</div></div><div class="kpi"><div class="kpi-v" style="color:#EF4444">${lates}</div><div class="kpi-l">Demorados</div></div><div class="kpi"><div class="kpi-v" style="color:${avgD > 0 ? "#EF4444" : avgD < 0 ? "#16a34a" : "#94A3B8"}">${avgD > 0 ? "+" : ""}${avgD}'</div><div class="kpi-l">Promedio</div></div></div><table><thead><tr><th>Fecha/Hora</th><th>Vuelo</th><th>Gate</th><th>ETD</th><th>CM Real</th><th>PB Real</th><th>Estado</th><th>Penalidad</th></tr></thead><tbody>${tableRows}</tbody></table><div class="ft">Generado por TAT Calculator · wsaico.com</div></body></html>`;
+    const tableRows = history.map(h => { const lt = h.delta > 0, el = h.delta < 0; return `<tr><td>${h.date} ${h.time}</td><td><b>${h.airline} ${h.flight}</b></td><td>${h.gate}</td><td>${h.etd}</td><td>${h.cmReal}</td><td>${h.pbReal}</td><td style="color:${lt ? "#EF4444" : el ? "#16a34a" : "#94A3B8"};font-weight:700">${h.delta === 0 ? "A TIEMPO" : lt ? `DEMORA +${fmtDur(h.delta)}` : `ADELANTO -${fmtDur(-h.delta)}`}</td><td>${h.penalty ? `USD ${h.penalty}` : "-"}</td></tr>`; }).join("");
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title><style>body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1E293B;font-size:13px;}h1{font-size:22px;margin-bottom:4px;}h2{font-size:14px;color:#64748B;font-weight:400;margin-bottom:24px;}.kpis{display:flex;gap:16px;margin-bottom:24px;}.kpi{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px 18px;text-align:center;}.kpi-v{font-size:24px;font-weight:800;}.kpi-l{font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#64748B;}td{padding:8px 10px;border-bottom:1px solid #F1F5F9;font-size:12px;}.ft{margin-top:32px;font-size:10px;color:#94A3B8;text-align:center;border-top:1px solid #E2E8F0;padding-top:12px;}</style></head><body><h1>Reporte de Turno — ${al.name}</h1><h2>${new Date().toLocaleDateString("es-PE", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h2><div class="kpis"><div class="kpi"><div class="kpi-v">${history.length}</div><div class="kpi-l">Vuelos</div></div><div class="kpi"><div class="kpi-v" style="color:#16a34a">${ontime}</div><div class="kpi-l">A tiempo</div></div><div class="kpi"><div class="kpi-v" style="color:#EF4444">${lates}</div><div class="kpi-l">Demorados</div></div><div class="kpi"><div class="kpi-v" style="color:${avgD > 0 ? "#EF4444" : avgD < 0 ? "#16a34a" : "#94A3B8"}">${avgD > 0 ? "+" : ""}${avgD}'</div><div class="kpi-l">Promedio</div></div></div><table><thead><tr><th>Fecha/Hora</th><th>Vuelo</th><th>Gate</th><th>ETD</th><th>CM Real</th><th>PB Real</th><th>Estado</th><th>Penalidad</th></tr></thead><tbody>${tableRows}</tbody></table><div class="ft">Generado por TAT Calculator · wsaico.com</div></body></html>`;
     const w = window.open("", "_blank"); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
   };
 
@@ -478,7 +482,13 @@ function Calc({ airlineKey, onLogout }) {
         </div>
       </nav>
       <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px" }}>
-        {history.length === 0 && <div style={{ textAlign: "center", padding: "60px 20px", color: mut }}><div style={{ fontSize: 36, marginBottom: 8 }}>📋</div><div style={{ fontSize: 14, fontWeight: 600, color: txt }}>Sin vuelos registrados</div><div style={{ fontSize: 12, marginTop: 4 }}>Guarda vuelos desde la calculadora</div></div>}
+        {history.length === 0 && (
+          <div style={{ textAlign: "center", padding: "60px 20px", color: mut }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.06)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: mut, marginBottom: 10 }}>{Ic.hist}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: txt }}>Sin vuelos registrados</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>Guarda vuelos desde la calculadora</div>
+          </div>
+        )}
         {history.map(h => {
           const lt = h.delta > 0, el = h.delta < 0;
           const sc = lt ? "#EF4444" : el ? "#4ADE80" : mut;
@@ -490,7 +500,7 @@ function Calc({ airlineKey, onLogout }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 15, fontWeight: 800, color: txt }}>{h.airline} {h.flight}</span>
                   {h.gate !== "—" && <span style={{ fontSize: 10, color: mut, background: dark ? "rgba(255,255,255,0.05)" : "#F8FAFC", borderRadius: 6, padding: "2px 7px", fontWeight: 600 }}>Gate {h.gate}</span>}
-                  {h.clComplete && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ADE80", background: "rgba(74,222,128,0.1)", borderRadius: 6, padding: "2px 7px" }}>✅ CL</span>}
+                  {h.clComplete && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ADE80", background: "rgba(74,222,128,0.1)", borderRadius: 6, padding: "2px 7px" }}>CL OK</span>}
                 </div>
                 <button onClick={() => saveHistory(history.filter(x => x.id !== h.id))} style={{ background: "none", border: "none", cursor: "pointer", color: mut, display: "flex" }}>{Ic.trash}</button>
               </div>
@@ -499,8 +509,8 @@ function Calc({ airlineKey, onLogout }) {
                   <div key={l} style={{ textAlign: "center" }}><div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>{l}</div><div style={{ fontSize: 13, fontWeight: 800, color: txt, fontVariantNumeric: "tabular-nums" }}>{v}</div></div>
                 ))}
               </div>
-              {h.penalty && <div style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", marginBottom: 3 }}>💰 USD {h.penalty}</div>}
-              {h.obs && <div style={{ fontSize: 10, color: mut, fontStyle: "italic", borderTop: `1px solid ${bdr}`, paddingTop: 5, marginTop: 4 }}>📝 {h.obs}</div>}
+              {h.penalty && <div style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", marginBottom: 3 }}>PENALIDAD: USD {h.penalty}</div>}
+              {h.obs && <div style={{ fontSize: 10, color: mut, fontStyle: "italic", borderTop: `1px solid ${bdr}`, paddingTop: 5, marginTop: 4 }}>{h.obs}</div>}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 7 }}>
                 <span style={{ fontSize: 10, color: mut }}>{h.date} {h.time}</span>
                 <span style={{ fontSize: 10, fontWeight: 700, color: sc, background: sb, padding: "3px 8px", borderRadius: 10 }}>{ds}</span>
@@ -528,7 +538,7 @@ function Calc({ airlineKey, onLogout }) {
 
             {/* Notificaciones */}
             <div style={{ padding: "10px 12px", borderRadius: 10, background: notifOk ? "rgba(74,222,128,0.08)" : "rgba(239,68,68,0.08)", border: `1px solid ${notifOk ? "rgba(74,222,128,0.25)" : "rgba(239,68,68,0.2)"}`, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 18 }}>{notifOk ? "🔔" : "🔕"}</span>
+              <span style={{ display: "flex", color: notifOk ? "#4ADE80" : "#EF4444" }}>{notifOk ? Ic.bell : Ic.bellOff}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: notifOk ? "#4ADE80" : "#EF4444" }}>{notifOk ? "Notificaciones activas" : "Notificaciones desactivadas"}</div>
                 <div style={{ fontSize: 10, color: mut, marginTop: 2 }}>{notifOk ? "Recibirás alertas aunque cierres la app" : "Toca para activar permisos"}</div>
@@ -580,7 +590,7 @@ function Calc({ airlineKey, onLogout }) {
                 <span style={{ fontSize: 12, fontWeight: clDone[i] ? 400 : 600, color: clDone[i] ? mut : txt, textDecoration: clDone[i] ? "line-through" : "none" }}>{item}</span>
               </button>
             ))}
-            {clComplete && <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, color: "#4ADE80", fontSize: 12, fontWeight: 700, textAlign: "center" }}>✅ Listo para Push back</div>}
+            {clComplete && <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, color: "#4ADE80", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>{Ic.checkCircle} Listo para Push back</div>}
           </div>
         </div>
       )}
@@ -608,7 +618,7 @@ function Calc({ airlineKey, onLogout }) {
                 {Ic.wa} Abrir WhatsApp
               </button>
               <button onClick={() => { navigator.clipboard?.writeText(buildWA()); }} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "13px 0", borderRadius: 12, border: `1px solid ${bdr}`, background: card, color: txt, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                📋 Copiar texto
+                {Ic.copy} Copiar texto
               </button>
             </div>
 
@@ -655,6 +665,9 @@ function Calc({ airlineKey, onLogout }) {
             <button
               onClick={() => setViewMode("timer")}
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
                 padding: "6px 9px",
                 borderRadius: 8,
                 border: "none",
@@ -668,11 +681,14 @@ function Calc({ airlineKey, onLogout }) {
               }}
               title="Modo con temporizador en vivo"
             >
-              ⏱️ En Vivo
+              {Ic.timer} En Vivo
             </button>
             <button
               onClick={() => setViewMode("gantt")}
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
                 padding: "6px 9px",
                 borderRadius: 8,
                 border: "none",
@@ -686,7 +702,7 @@ function Calc({ airlineKey, onLogout }) {
               }}
               title="Modo Carta Gantt (Secuencia limpia)"
             >
-              📊 Gantt
+              {Ic.chart} Gantt
             </button>
           </div>
         </div>
@@ -695,7 +711,7 @@ function Calc({ airlineKey, onLogout }) {
         <div className="H-msg" style={{ background: SBg, border: `1px solid ${SBr}`, color: SC }}>
           <span style={{ display: "flex", flexShrink: 0 }}>{isLate ? Ic.warn : Ic.ok}</span>
           <span style={{ flex: 1, fontSize: 11, fontWeight: 600, lineHeight: 1.4 }}>{smartMsg}</span>
-          {penalty && <span style={{ fontSize: 11, fontWeight: 800, color: "#F59E0B", whiteSpace: "nowrap", flexShrink: 0 }}>💰 USD {penalty}</span>}
+          {penalty && <span style={{ fontSize: 10.5, fontWeight: 800, color: "#F59E0B", whiteSpace: "nowrap", flexShrink: 0, letterSpacing: "0.5px" }}>PENALIDAD: USD {penalty}</span>}
         </div>
 
         {/* Time inputs */}
@@ -712,7 +728,7 @@ function Calc({ airlineKey, onLogout }) {
           </div>
         </div>
 
-        {/* ⏱ COUNTDOWN (Visible solo en Modo Timer) */}
+        {/* COUNTDOWN (Visible solo en Modo Timer) */}
         {viewMode === "timer" && (
           <div className={`H-cd${cdUrgent ? " H-cd-u" : ""}`} style={{
             background: cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(0,0,0,0.2)",
@@ -725,7 +741,7 @@ function Calc({ airlineKey, onLogout }) {
             </div>
             {/* Checklist status */}
             <button onClick={() => setShowCL(true)} style={{ background: clComplete ? "rgba(74,222,128,0.2)" : cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)", border: `1px solid ${clComplete ? "rgba(74,222,128,0.35)" : cdUrgent ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "8px 10px", cursor: "pointer", color: clComplete ? "#4ADE80" : cdUrgent ? "#EF4444" : "rgba(255,255,255,0.45)", fontFamily: "'Plus Jakarta Sans',sans-serif", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-              <span style={{ fontSize: 16 }}>{clComplete ? "✅" : "📋"}</span>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{clComplete ? Ic.checkCircle : Ic.list}</span>
               <span style={{ fontSize: 9, fontWeight: 700 }}>{clChecked}/{al.checklist.length}</span>
             </button>
           </div>
@@ -812,7 +828,7 @@ function Calc({ airlineKey, onLogout }) {
 
       {/* OBSERVATIONS */}
       <div style={{ padding: "6px 12px 4px" }}>
-        <textarea placeholder="📝 Observaciones del vuelo..." value={obs} onChange={e => setObs(e.target.value)} rows={2}
+        <textarea placeholder="Observaciones del vuelo..." value={obs} onChange={e => setObs(e.target.value)} rows={2}
           style={{ width: "100%", background: card, border: `1px solid ${bdr}`, borderRadius: 10, padding: "8px 10px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: txt, resize: "none", outline: "none", lineHeight: 1.5 }} />
       </div>
 
@@ -824,11 +840,10 @@ function Calc({ airlineKey, onLogout }) {
         <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setEtdItin(defETD); setFlightNum(""); setGate(""); setObs(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
           {Ic.reset}<span>Reset</span>
         </button>
-        {/* 📲 WhatsApp — botón principal grande */}
-        <button onClick={() => setShowWA(true)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, margin: "0 6px", padding: "0 0 0 0", background: "linear-gradient(135deg,#128C7E,#25D366)", border: "none", borderRadius: 14, height: 44, cursor: "pointer", color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 800, boxShadow: "0 3px 12px rgba(37,211,102,0.35)" }}>
-          {Ic.wa} WhatsApp
+        <button className="B-btn" style={{ color: mut }} onClick={() => setShowWA(true)}>
+          {Ic.wa}<span>WhatsApp</span>
         </button>
-        <button className="B-fab" style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})` }} onClick={() => { doSave(); capture(); }}>
+        <button className="B-fab" style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, border: "1px solid rgba(255,255,255,0.15)" }} title="Guardar y capturar" onClick={() => { doSave(); capture(); }}>
           {Ic.cam}
         </button>
         <button className="B-btn" style={{ color: clComplete ? "#4ADE80" : cdUrgent ? "#EF4444" : mut, position: "relative" }} onClick={() => setShowCL(true)}>
@@ -848,7 +863,7 @@ function Calc({ airlineKey, onLogout }) {
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name}{flightNum ? ` · ${flightNum}` : ""}{gate ? ` | Gate ${gate}` : ""}</div>
               <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</div>
             </div>
-            <div style={{ background: SBg, border: `1px solid ${SBr}`, borderRadius: 20, padding: "4px 10px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8.5, fontWeight: 700, color: SC }}>{isLate ? `⚠️ +${fmtDur(cmDelta)}` : isEarly ? `✅ −${fmtDur(-cmDelta)}` : "✅ EN TIEMPO"}</div>
+            <div style={{ background: SBg, border: `1px solid ${SBr}`, borderRadius: 20, padding: "4px 10px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8.5, fontWeight: 700, color: SC }}>{isLate ? `DEMORA +${fmtDur(cmDelta)}` : isEarly ? `ADELANTO −${fmtDur(-cmDelta)}` : "EN TIEMPO"}</div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6 }}>
             {[["CM Real", cmReal, "#fff"], ["ETD", etdItin, th.accent], ["Ent. Plan", entRow.plan, "rgba(255,255,255,0.6)"], ["PB Real", pbRow.real, SC]].map(([l, v, c]) => (
@@ -873,9 +888,9 @@ function Calc({ airlineKey, onLogout }) {
               </div>
             );
           })}
-          {penalty && <div style={{ marginTop: 6, padding: "6px 10px", background: "#FEF3C7", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#92400E" }}>💰 USD {penalty}</div>}
-          {obs && <div style={{ marginTop: 4, padding: "6px 10px", background: "#fff", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: "#475569", borderLeft: "3px solid #CBD5E1" }}>📝 {obs}</div>}
-          <div style={{ textAlign: "right", marginTop: 6, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 7.5, color: "#94A3B8" }}>{clComplete ? "✅ CL · " : ""}wsaico.com</div>
+          {penalty && <div style={{ marginTop: 6, padding: "6px 10px", background: "#FEF3C7", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#92400E" }}>PENALIDAD: USD {penalty}</div>}
+          {obs && <div style={{ marginTop: 4, padding: "6px 10px", background: "#fff", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: "#475569", borderLeft: "3px solid #CBD5E1" }}>OBS: {obs}</div>}
+          <div style={{ textAlign: "right", marginTop: 6, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 7.5, color: "#94A3B8" }}>{clComplete ? "CL OK · " : ""}wsaico.com</div>
         </div>
       </div>
 
@@ -986,13 +1001,13 @@ function CalcDur({ airlineKey, onLogout }) {
   /* ── WhatsApp builder ───────────────────────────────────────────── */
   const buildWA = useCallback(() => {
     return [
-      `✈️ *${al.code}${flightNum ? ` ${flightNum}` : ""}*${gate ? ` | Gate ${gate}` : ""}`,
-      `📅 ${new Date().toLocaleDateString("es-PE")} ${nowHHMM()}`, ``,
-      `🛬 CM: *${cmReal}*`,
-      `📋 Entrega vuelo: *${entRow.hora}*`,
-      `🚀 Push Back: *${pbRow.hora}*`,
-      obs ? `📝 ${obs}` : "", ``,
-      clComplete ? `✅ Checklist completo` : `⚠️ Checklist ${clChecked}/${al.checklist.length}`,
+      `*TAT DISPATCH — ${al.code}${flightNum ? ` ${flightNum}` : ""}*${gate ? ` | GATE ${gate}` : ""}`,
+      `FECHA: ${new Date().toLocaleDateString("es-PE")} ${nowHHMM()}`, ``,
+      `CORTE MOTOR (CM): *${cmReal}*`,
+      `ENTREGA DE VUELO: *${entRow.hora}*`,
+      `PUSH BACK: *${pbRow.hora}*`,
+      obs ? `OBSERVACIONES: ${obs}` : "", ``,
+      `CHECKLIST: ${clComplete ? "COMPLETO" : `${clChecked}/${al.checklist.length}`}`,
       `_TAT Calculator · wsaico.com_`,
     ].filter(l => l !== "").join("\n");
   }, [al, flightNum, gate, cmReal, entRow, pbRow, obs, clComplete, clChecked]);
@@ -1005,10 +1020,10 @@ function CalcDur({ airlineKey, onLogout }) {
     const waText = buildWA();
     const lbl    = `${al.code}${flightNum ? " " + flightNum : ""}${gate ? " · Gate " + gate : ""}`;
     const alerts = [
-      { id: "pre-pb", title: `🚀 ${alertAt} min para Push Back`, body: `${lbl} — PB a las ${pbRow.hora}. ¡Completa el checklist!`, fireAt: hhmm2ts(pbRow.hora) - alertAt * 60 * 1000, tag: "tat-pre-pb", waText },
-      { id: "ent",    title: `📋 ¡Hora de entregar el vuelo!`,  body: `${lbl} — Entrega a las ${entRow.hora}. Cierre: ${cpRow?.hora || "—"}`, fireAt: hhmm2ts(entRow.hora), tag: "tat-ent", waText },
-      { id: "cp",     title: `🚪 Cierre de puertas`,           body: `${lbl} — Cerrar puertas ahora. PB: ${pbRow.hora}`, fireAt: hhmm2ts(cpRow?.hora || pbRow.hora), tag: "tat-cp", waText },
-      { id: "pb",     title: `🛫 Push Back — ${pbRow.hora}`,   body: lbl, fireAt: hhmm2ts(pbRow.hora), tag: "tat-pb", waText },
+      { id: "pre-pb", title: `${alertAt} min para Push Back`, body: `${lbl} — PB a las ${pbRow.hora}. Checklist pendiente.`, fireAt: hhmm2ts(pbRow.hora) - alertAt * 60 * 1000, tag: "tat-pre-pb", waText },
+      { id: "ent",    title: `Entrega de vuelo ahora`,  body: `${lbl} — Entrega: ${entRow.hora}. Cierre: ${cpRow?.hora || "—"}`, fireAt: hhmm2ts(entRow.hora), tag: "tat-ent", waText },
+      { id: "cp",     title: `Cierre de puertas`,           body: `${lbl} — Cerrar puertas ahora. PB: ${pbRow.hora}`, fireAt: hhmm2ts(cpRow?.hora || pbRow.hora), tag: "tat-cp", waText },
+      { id: "pb",     title: `Push Back — ${pbRow.hora}`,   body: lbl, fireAt: hhmm2ts(pbRow.hora), tag: "tat-pb", waText },
     ].filter(a => a.fireAt > Date.now());
     scheduleAlerts(alerts);
     return () => { clearAlerts(); };
@@ -1020,10 +1035,10 @@ function CalcDur({ airlineKey, onLogout }) {
     const now = Date.now();
     const lbl = `${al.code}${flightNum ? " " + flightNum : ""}`;
     [
-      { key: "ent", ts: hhmm2ts(entRow.hora), title: `📋 ¡Entregar vuelo!`,   body: `${lbl} — ${entRow.hora}` },
-      { key: "cp",  ts: hhmm2ts(cpRow?.hora || pbRow.hora), title: `🚪 Cerrar puertas`, body: `${lbl} — PB: ${pbRow.hora}` },
-      { key: "pb",  ts: hhmm2ts(pbRow.hora), title: `🛫 Push Back`, body: lbl },
-      { key: "pre", ts: hhmm2ts(pbRow.hora) - alertAt * 60 * 1000, title: `⏱ ${alertAt} min para PB`, body: `${lbl} — ¡Checklist!` },
+      { key: "ent", ts: hhmm2ts(entRow.hora), title: `Entrega de vuelo ahora`,   body: `${lbl} — ${entRow.hora}` },
+      { key: "cp",  ts: hhmm2ts(cpRow?.hora || pbRow.hora), title: `Cierre de puertas`, body: `${lbl} — PB: ${pbRow.hora}` },
+      { key: "pb",  ts: hhmm2ts(pbRow.hora), title: `Push Back`, body: lbl },
+      { key: "pre", ts: hhmm2ts(pbRow.hora) - alertAt * 60 * 1000, title: `${alertAt} min para Push Back`, body: `${lbl} — Checklist pendiente.` },
     ].forEach(c => {
       if (!firedRef.current[c.key] && Math.abs(now - c.ts) < 30000) {
         firedRef.current[c.key] = true;
@@ -1052,9 +1067,9 @@ function CalcDur({ airlineKey, onLogout }) {
   /* ── Exportar PDF del turno ─────────────────────────────────────── */
   const exportPDF = () => {
     const tableRows = history.map(h =>
-      `<tr><td>${h.date} ${h.time}</td><td><b>${h.airline} ${h.flight}</b></td><td>${h.gate}</td><td>${h.cmReal}</td><td>${h.pbReal}</td><td>${h.clComplete ? "✅" : "—"}</td></tr>`
+      `<tr><td>${h.date} ${h.time}</td><td><b>${h.airline} ${h.flight}</b></td><td>${h.gate}</td><td>${h.cmReal}</td><td>${h.pbReal}</td><td>${h.clComplete ? "OK" : "—"}</td></tr>`
     ).join("");
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title><style>body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1E293B;font-size:13px;}h1{font-size:22px;margin-bottom:4px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#64748B;}td{padding:8px 10px;border-bottom:1px solid #F1F5F9;font-size:12px;}.ft{margin-top:32px;font-size:10px;color:#94A3B8;text-align:center;border-top:1px solid #E2E8F0;padding-top:12px;}</style></head><body><h1>✈️ Reporte — ${al.name}</h1><table><thead><tr><th>Fecha/Hora</th><th>Vuelo</th><th>Gate</th><th>CM</th><th>Push Back</th><th>Checklist</th></tr></thead><tbody>${tableRows}</tbody></table><div class="ft">TAT Calculator · wsaico.com</div></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte TAT — ${al.name}</title><style>body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1E293B;font-size:13px;}h1{font-size:22px;margin-bottom:4px;}table{width:100%;border-collapse:collapse;}th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#64748B;}td{padding:8px 10px;border-bottom:1px solid #F1F5F9;font-size:12px;}.ft{margin-top:32px;font-size:10px;color:#94A3B8;text-align:center;border-top:1px solid #E2E8F0;padding-top:12px;}</style></head><body><h1>Reporte de Turno — ${al.name}</h1><table><thead><tr><th>Fecha/Hora</th><th>Vuelo</th><th>Gate</th><th>CM</th><th>Push Back</th><th>Checklist</th></tr></thead><tbody>${tableRows}</tbody></table><div class="ft">TAT Calculator · wsaico.com</div></body></html>`;
     const w = window.open("", "_blank"); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
   };
 
@@ -1084,14 +1099,20 @@ function CalcDur({ airlineKey, onLogout }) {
         </div>
       </nav>
       <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px" }}>
-        {history.length === 0 && <div style={{ textAlign: "center", padding: "60px 20px", color: mut }}><div style={{ fontSize: 36, marginBottom: 8 }}>📋</div><div style={{ fontSize: 14, fontWeight: 600, color: txt }}>Sin vuelos registrados</div><div style={{ fontSize: 12, marginTop: 4 }}>Guarda vuelos desde la calculadora</div></div>}
+        {history.length === 0 && (
+          <div style={{ textAlign: "center", padding: "60px 20px", color: mut }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.06)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: mut, marginBottom: 10 }}>{Ic.hist}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: txt }}>Sin vuelos registrados</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>Guarda vuelos desde la calculadora</div>
+          </div>
+        )}
         {history.map(h => (
           <div key={h.id} style={{ background: card, borderRadius: 12, padding: "12px 14px", marginBottom: 8, border: `1px solid ${bdr}` }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 15, fontWeight: 800, color: txt }}>{h.airline} {h.flight}</span>
                 {h.gate !== "—" && <span style={{ fontSize: 10, color: mut, background: dark ? "rgba(255,255,255,0.05)" : "#F8FAFC", borderRadius: 6, padding: "2px 7px", fontWeight: 600 }}>Gate {h.gate}</span>}
-                {h.clComplete && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ADE80", background: "rgba(74,222,128,0.1)", borderRadius: 6, padding: "2px 7px" }}>✅ CL</span>}
+                {h.clComplete && <span style={{ fontSize: 9, fontWeight: 700, color: "#4ADE80", background: "rgba(74,222,128,0.1)", borderRadius: 6, padding: "2px 7px" }}>CL OK</span>}
               </div>
               <button onClick={() => saveHistory(history.filter(x => x.id !== h.id))} style={{ background: "none", border: "none", cursor: "pointer", color: mut, display: "flex" }}>{Ic.trash}</button>
             </div>
@@ -1100,10 +1121,10 @@ function CalcDur({ airlineKey, onLogout }) {
                 <div key={l} style={{ textAlign: "center" }}><div style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: mut, marginBottom: 2 }}>{l}</div><div style={{ fontSize: 13, fontWeight: 800, color: txt, fontVariantNumeric: "tabular-nums" }}>{v}</div></div>
               ))}
             </div>
-            {h.obs && <div style={{ fontSize: 10, color: mut, fontStyle: "italic", borderTop: `1px solid ${bdr}`, paddingTop: 5, marginTop: 4 }}>📝 {h.obs}</div>}
+            {h.obs && <div style={{ fontSize: 10, color: mut, fontStyle: "italic", borderTop: `1px solid ${bdr}`, paddingTop: 5, marginTop: 4 }}>{h.obs}</div>}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 7 }}>
               <span style={{ fontSize: 10, color: mut }}>{h.date} {h.time}</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: th.accent, background: `${th.accent}18`, padding: "3px 8px", borderRadius: 10 }}>✅ Operado</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: th.accent, background: `${th.accent}18`, padding: "3px 8px", borderRadius: 10 }}>OPERADO</span>
             </div>
           </div>
         ))}
@@ -1125,7 +1146,7 @@ function CalcDur({ airlineKey, onLogout }) {
               <button style={{ background: "none", border: "none", cursor: "pointer", color: mut, fontSize: 18 }} onClick={() => setShowCfg(false)}>✕</button>
             </div>
             <div style={{ padding: "10px 12px", borderRadius: 10, background: notifOk ? "rgba(74,222,128,0.08)" : "rgba(239,68,68,0.08)", border: `1px solid ${notifOk ? "rgba(74,222,128,0.25)" : "rgba(239,68,68,0.2)"}`, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 18 }}>{notifOk ? "🔔" : "🔕"}</span>
+              <span style={{ display: "flex", color: notifOk ? "#4ADE80" : "#EF4444" }}>{notifOk ? Ic.bell : Ic.bellOff}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: notifOk ? "#4ADE80" : "#EF4444" }}>{notifOk ? "Notificaciones activas" : "Notificaciones desactivadas"}</div>
                 <div style={{ fontSize: 10, color: mut, marginTop: 2 }}>{notifOk ? "Recibirás alertas aunque cierres la app" : "Toca para activar permisos"}</div>
@@ -1168,7 +1189,7 @@ function CalcDur({ airlineKey, onLogout }) {
                 <span style={{ fontSize: 12, fontWeight: clDone[i] ? 400 : 600, color: clDone[i] ? mut : txt, textDecoration: clDone[i] ? "line-through" : "none" }}>{item}</span>
               </button>
             ))}
-            {clComplete && <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, color: "#4ADE80", fontSize: 12, fontWeight: 700, textAlign: "center" }}>✅ Listo para Push back</div>}
+            {clComplete && <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, color: "#4ADE80", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>{Ic.checkCircle} Listo para Push back</div>}
           </div>
         </div>
       )}
@@ -1192,7 +1213,7 @@ function CalcDur({ airlineKey, onLogout }) {
                 {Ic.wa} Abrir WhatsApp
               </button>
               <button onClick={() => { navigator.clipboard?.writeText(buildWA()); }} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "13px 0", borderRadius: 12, border: `1px solid ${bdr}`, background: card, color: txt, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                📋 Copiar texto
+                {Ic.copy} Copiar texto
               </button>
             </div>
             <button onClick={async () => { setShowWA(false); await capture(); }} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "11px 0", borderRadius: 12, border: `1px solid ${bdr}`, background: card, color: mut, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
@@ -1234,6 +1255,9 @@ function CalcDur({ airlineKey, onLogout }) {
             <button
               onClick={() => setViewMode("timer")}
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
                 padding: "6px 9px",
                 borderRadius: 8,
                 border: "none",
@@ -1247,11 +1271,14 @@ function CalcDur({ airlineKey, onLogout }) {
               }}
               title="Modo con temporizador en vivo"
             >
-              ⏱️ En Vivo
+              {Ic.timer} En Vivo
             </button>
             <button
               onClick={() => setViewMode("gantt")}
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
                 padding: "6px 9px",
                 borderRadius: 8,
                 border: "none",
@@ -1265,7 +1292,7 @@ function CalcDur({ airlineKey, onLogout }) {
               }}
               title="Modo Carta Gantt (Secuencia limpia)"
             >
-              📊 Gantt
+              {Ic.chart} Gantt
             </button>
           </div>
         </div>
@@ -1286,7 +1313,7 @@ function CalcDur({ airlineKey, onLogout }) {
           </div>
         </div>
 
-        {/* ⏱ COUNTDOWN (Visible solo en Modo Timer) */}
+        {/* COUNTDOWN (Visible solo en Modo Timer) */}
         {viewMode === "timer" && (
           <div className={`H-cd${cdUrgent ? " H-cd-u" : ""}`} style={{
             background: cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(0,0,0,0.2)",
@@ -1304,7 +1331,7 @@ function CalcDur({ airlineKey, onLogout }) {
               </div>
             </div>
             <button onClick={() => setShowCL(true)} style={{ background: clComplete ? "rgba(74,222,128,0.2)" : cdUrgent ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)", border: `1px solid ${clComplete ? "rgba(74,222,128,0.35)" : cdUrgent ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "8px 10px", cursor: "pointer", color: clComplete ? "#4ADE80" : cdUrgent ? "#EF4444" : "rgba(255,255,255,0.45)", fontFamily: "'Plus Jakarta Sans',sans-serif", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-              <span style={{ fontSize: 16 }}>{clComplete ? "✅" : "📋"}</span>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{clComplete ? Ic.checkCircle : Ic.list}</span>
               <span style={{ fontSize: 9, fontWeight: 700 }}>{clChecked}/{al.checklist.length}</span>
             </button>
           </div>
@@ -1376,7 +1403,7 @@ function CalcDur({ airlineKey, onLogout }) {
 
       {/* Observaciones */}
       <div style={{ padding: "6px 12px 4px" }}>
-        <textarea placeholder="📝 Observaciones del vuelo..." value={obs} onChange={e => setObs(e.target.value)} rows={2}
+        <textarea placeholder="Observaciones del vuelo..." value={obs} onChange={e => setObs(e.target.value)} rows={2}
           style={{ width: "100%", background: card, border: `1px solid ${bdr}`, borderRadius: 10, padding: "8px 10px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: txt, resize: "none", outline: "none", lineHeight: 1.5 }} />
       </div>
 
@@ -1388,10 +1415,10 @@ function CalcDur({ airlineKey, onLogout }) {
         <button className="B-btn" style={{ color: mut }} onClick={() => { setCmReal(defCM); setFlightNum(""); setGate(""); setObs(""); setClDone({}); firedRef.current = {}; clearAlerts(); }}>
           {Ic.reset}<span>Reset</span>
         </button>
-        <button onClick={() => setShowWA(true)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, margin: "0 6px", background: "linear-gradient(135deg,#128C7E,#25D366)", border: "none", borderRadius: 14, height: 44, cursor: "pointer", color: "#fff", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 800, boxShadow: "0 3px 12px rgba(37,211,102,0.35)" }}>
-          {Ic.wa} WhatsApp
+        <button className="B-btn" style={{ color: mut }} onClick={() => setShowWA(true)}>
+          {Ic.wa}<span>WhatsApp</span>
         </button>
-        <button className="B-fab" style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})` }} onClick={() => { doSave(); capture(); }}>
+        <button className="B-fab" style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, border: "1px solid rgba(255,255,255,0.15)" }} title="Guardar y capturar" onClick={() => { doSave(); capture(); }}>
           {Ic.cam}
         </button>
         <button className="B-btn" style={{ color: clComplete ? "#4ADE80" : cdUrgent ? "#EF4444" : mut, position: "relative" }} onClick={() => setShowCL(true)}>
@@ -1435,8 +1462,8 @@ function CalcDur({ airlineKey, onLogout }) {
               <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, fontWeight: 600, color: "#334155" }}>{r.label}</span>
             </div>
           ))}
-          {obs && <div style={{ marginTop: 4, padding: "6px 10px", background: "#fff", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: "#475569", borderLeft: "3px solid #CBD5E1" }}>📝 {obs}</div>}
-          <div style={{ textAlign: "right", marginTop: 6, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 7.5, color: "#94A3B8" }}>{clComplete ? "✅ CL · " : ""}wsaico.com</div>
+          {obs && <div style={{ marginTop: 4, padding: "6px 10px", background: "#fff", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: "#475569", borderLeft: "3px solid #CBD5E1" }}>OBS: {obs}</div>}
+          <div style={{ textAlign: "right", marginTop: 6, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 7.5, color: "#94A3B8" }}>{clComplete ? "CL OK · " : ""}wsaico.com</div>
         </div>
       </div>
 
