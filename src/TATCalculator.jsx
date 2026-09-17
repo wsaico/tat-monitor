@@ -1184,25 +1184,26 @@ export default function App() {
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html{font-size:16px;-webkit-text-size-adjust:100%;width:100%;min-height:100%;height:100%;background:#03060F;}
+html{
+  font-size:16px;
+  -webkit-text-size-adjust:100%;
+  background:#03060F;
+}
 body,#root{
   background:#03060F;
   color:#fff;
   font-family:'Plus Jakarta Sans',sans-serif;
   -webkit-font-smoothing:antialiased;
-  overscroll-behavior:none;
   width:100%;
   min-height:100%;
-  min-height:100dvh;
-  overflow-x:hidden;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes rIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 
 /* ══════════════ LOGIN ══════════════ */
 .L{
-  min-height:100dvh;
   min-height:100vh;
+  min-height:100dvh;
   width:100%;
   background:#0A0F1D;
   display:flex;
@@ -1240,12 +1241,11 @@ body,#root{
   width:100%;
   max-width:100%;
   margin:0 auto;
-  min-height:100dvh;
   min-height:100vh;
+  min-height:100dvh;
   display:flex;
   flex-direction:column;
   transition:background .3s;
-  overflow-x:hidden;
   position:relative;
 }
 @media (min-width: 640px) {
@@ -1303,16 +1303,12 @@ body,#root{
 
 /* LIST */
 .ML{
-  flex:1;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
   padding-top:4px;
   padding-bottom:6px;
   padding-left:max(10px, env(safe-area-inset-left));
   padding-right:max(10px, env(safe-area-inset-right));
   width:100%;
 }
-.ML::-webkit-scrollbar{display:none;}
 
 /* MODALS */
 .MOD{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(8px);}
@@ -1324,8 +1320,10 @@ body,#root{
   padding-left:max(18px, env(safe-area-inset-left));
   padding-right:max(18px, env(safe-area-inset-right));
   padding-bottom:max(24px, env(safe-area-inset-bottom));
-  max-height:90vh;
+  max-height:85vh;
+  max-height:85dvh;
   overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
 }
 @media (min-width: 640px) {
   .MOD-box {
