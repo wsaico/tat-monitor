@@ -681,7 +681,7 @@ function Calc({ airlineKey, onLogout }) {
 
   /* ── html2canvas ──────────────────────────────────────────────── */
   const loadH2C = () => new Promise((res, rej) => { if (window.html2canvas) return res(); const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
-  const capture = useCallback(async () => { try { await loadH2C(); const c = await window.html2canvas(capRef.current, { backgroundColor: dark ? "#0F172A" : "#F4F6F9", scale: 2.5, useCORS: true, logging: false }); setOv(c.toDataURL("image/png")); } catch (e) { console.error(e); } }, [dark]);
+  const capture = useCallback(async () => { try { await loadH2C(); const c = await window.html2canvas(capRef.current, { backgroundColor: "#080D1A", scale: 2.5, useCORS: true, logging: false }); setOv(c.toDataURL("image/png")); } catch (e) { console.error(e); } }, []);
   const doShareImg = useCallback(async () => { if (!ov) return; try { const b = await (await fetch(ov)).blob(); const f = new File([b], "TAT.png", { type: "image/png" }); if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: `TAT ${airlineKey}` }); return; } } catch (_) { } Object.assign(document.createElement("a"), { href: ov, download: `TAT_${airlineKey}.png` }).click(); }, [ov, airlineKey]);
 
   // Theme
@@ -1120,41 +1120,103 @@ function Calc({ airlineKey, onLogout }) {
       </div>
 
       {/* CAPTURE OFFSCREEN */}
-      <div id="cap" ref={capRef} style={{ background: dark ? "#0F172A" : "#F4F6F9" }}>
-        <div style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})`, padding: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-            <div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name}</div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</div>
-            </div>
-            <div style={{ background: SBg, border: `1px solid ${SBr}`, borderRadius: 20, padding: "4px 10px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8.5, fontWeight: 700, color: SC }}>{isLate ? `DEMORA +${fmtDur(cmDelta)}` : isEarly ? `ADELANTO −${fmtDur(-cmDelta)}` : "EN TIEMPO"}</div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6 }}>
-            {[["CM Real", cmReal, "#fff"], ["ETD", etdItin, th.accent], ["Ent. Plan", entRow.plan, "rgba(255,255,255,0.6)"], ["PB Real", pbRow.real, SC]].map(([l, v, c]) => (
-              <div key={l} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "8px 4px", textAlign: "center" }}>
-                <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 6.5, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", marginBottom: 3 }}>{l}</div>
-                <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 15, fontWeight: 800, color: c }}>{v}</div>
+      <div id="cap" ref={capRef} style={{ width: 390, background: "#080D1A", color: "#F8FAFC", fontFamily: "'Plus Jakarta Sans',sans-serif", overflow: "hidden", borderRadius: 16, border: "1px solid rgba(255,255,255,0.12)" }}>
+        {/* Cabecera oficial con gradiente de aerolínea */}
+        <div style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, padding: "16px 18px 14px", position: "relative" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ background: th.accent, color: "#080D1A", fontSize: 11, fontWeight: 900, padding: "2px 7px", borderRadius: 6, letterSpacing: "1px" }}>{al.code}</span>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{al.name}</div>
+                <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginTop: 2 }}>REPORTE DE OPERACIONES DE RAMPA</div>
               </div>
-            ))}
+            </div>
+            <div style={{ background: SBg, border: `1px solid ${SBr}`, borderRadius: 20, padding: "4px 10px", fontSize: 9, fontWeight: 800, color: SC, whiteSpace: "nowrap" }}>
+              {isLate ? `DEMORA +${fmtDur(cmDelta)}` : isEarly ? `ADELANTO −${fmtDur(-cmDelta)}` : "A TIEMPO"}
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 8.5, color: "rgba(255,255,255,0.45)", fontWeight: 600, borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 6, marginTop: 4 }}>
+            <span>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
+            <span>TAT NOMINAL: <b style={{ color: "#fff" }}>{al.tat} MIN</b></span>
           </div>
         </div>
-        <div style={{ background: dark ? "#0F172A" : "#F4F6F9", padding: "10px 12px 12px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 38px 38px 38px", gap: 4, padding: "0 6px 4px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: "7px", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: "#94A3B8" }}>
-            <span>HITO</span><span style={{ textAlign: "center" }}>PLAN</span><span style={{ textAlign: "center" }}>REAL</span><span style={{ textAlign: "center" }}>DIF</span>
+
+        {/* 4 Cards de Telemetría Rápida */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, padding: "12px 14px 6px" }}>
+          {[
+            ["CM REAL", cmReal, "#fff", "Llegada"],
+            ["ETD ITIN", etdItin, th.accent, "Itinerario"],
+            ["ENTREGA", entRow.plan, "rgba(255,255,255,0.8)", "Target"],
+            ["PUSH BACK", pbRow.real, SC, "Salida"],
+          ].map(([l, v, c, sub]) => (
+            <div key={l} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "7px 4px", textAlign: "center" }}>
+              <div style={{ fontSize: 7, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 2 }}>{l}</div>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: c, fontVariantNumeric: "tabular-nums" }}>{v}</div>
+              <div style={{ fontSize: 6.5, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>{sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabla de Hitos en Dark Cockpit */}
+        <div style={{ padding: "6px 14px 14px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 42px 42px 42px", gap: 4, padding: "0 6px 6px", fontSize: 7.5, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <span>HITO OPERATIVO</span>
+            <span style={{ textAlign: "center" }}>PLAN</span>
+            <span style={{ textAlign: "center" }}>REAL</span>
+            <span style={{ textAlign: "center" }}>DIF</span>
           </div>
           {rows.map((r, i) => {
-            const lt = r.diff > 0, el = r.diff < 0; const dc = lt ? "#EF4444" : el ? "#22C55E" : "#94A3B8"; const ds = r.diff === 0 ? "00:00" : lt ? `+${fmt(r.diff)}` : `−${fmt(-r.diff)}`; return (
-              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 38px 38px 38px", gap: 4, alignItems: "center", background: (r.isEnt || r.isPb) ? "#EEF2FF" : "#fff", borderRadius: 6, borderLeft: `3px solid ${r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#F59E0B" : lt ? "#EF4444" : el ? "#4ADE80" : "#E2E8F0"}`, padding: "5px 7px", marginBottom: 3 }}>
-                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, fontWeight: 600, color: "#334155" }}>{r.label}</span>
-                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 800, color: "#64748B", textAlign: "center" }}>{r.plan}</span>
-                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: lt ? "#EF4444" : el ? "#15803D" : "#1E293B", textAlign: "center" }}>{r.real}</span>
-                <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 700, color: dc, textAlign: "center" }}>{ds}</span>
+            const lt = r.diff > 0, el = r.diff < 0;
+            const dc = lt ? "#EF4444" : el ? "#4ADE80" : "rgba(255,255,255,0.4)";
+            const ds = r.diff === 0 ? "00:00" : lt ? `+${fmt(r.diff)}` : `−${fmt(-r.diff)}`;
+            const isHighlight = r.isEnt || r.isPb || r.isCp;
+            const bl = r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#F59E0B" : lt ? "#EF4444" : el ? "#4ADE80" : "rgba(255,255,255,0.15)";
+            const rowBg = r.isEnt
+              ? "rgba(74,222,128,0.08)"
+              : r.isPb
+                ? "rgba(129,140,248,0.08)"
+                : r.isCp
+                  ? "rgba(245,158,11,0.08)"
+                  : lt
+                    ? "rgba(239,68,68,0.05)"
+                    : el
+                      ? "rgba(74,222,128,0.04)"
+                      : "rgba(255,255,255,0.025)";
+            const rowBdr = isHighlight
+              ? `1px solid ${bl}44`
+              : "1px solid rgba(255,255,255,0.04)";
+            return (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 42px 42px 42px", gap: 4, alignItems: "center", background: rowBg, borderRadius: 7, borderLeft: `3px solid ${bl}`, borderTop: rowBdr, borderRight: rowBdr, borderBottom: rowBdr, padding: "5px 7px", marginTop: 3 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: bl, flexShrink: 0 }} />
+                  <span style={{ fontSize: 9.5, fontWeight: isHighlight ? 700 : 500, color: isHighlight ? "#FFFFFF" : "rgba(255,255,255,0.85)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</span>
+                </div>
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.45)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{r.plan}</span>
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: lt ? "#EF4444" : el ? "#4ADE80" : "#FFFFFF", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{r.real}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: dc, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{ds}</span>
               </div>
             );
           })}
-          {penalty && <div style={{ marginTop: 6, padding: "6px 10px", background: "#FEF3C7", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#92400E" }}>PENALIDAD: USD {penalty}</div>}
-          {obs && <div style={{ marginTop: 4, padding: "6px 10px", background: "#fff", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: "#475569", borderLeft: "3px solid #CBD5E1" }}>OBS: {obs}</div>}
-          <div style={{ textAlign: "right", marginTop: 6, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 7.5, color: "#94A3B8" }}>{clComplete ? "CL OK · " : ""}wsaico.com</div>
+
+          {penalty && (
+            <div style={{ marginTop: 8, padding: "6px 10px", background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 8, fontSize: 9.5, fontWeight: 700, color: "#F59E0B" }}>
+              PENALIDAD ESTIMADA: USD {penalty} ({fmtDur(cmDelta)} demora)
+            </div>
+          )}
+
+          {obs && (
+            <div style={{ marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 9.5, color: "rgba(255,255,255,0.75)" }}>
+              <b style={{ color: "rgba(255,255,255,0.45)", fontSize: 8, letterSpacing: "1px" }}>OBSERVACIONES:</b> {obs}
+            </div>
+          )}
+
+          {/* Sello de Auditoría y Footer */}
+          <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 8, fontWeight: 700, color: clComplete ? "#4ADE80" : "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", gap: 4 }}>
+              {clComplete ? "✓ CHECKLIST 100% VERIFICADO" : `CHECKLIST: ${clChecked}/${al.checklist.length}`}
+            </span>
+            <span style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", letterSpacing: "0.5px" }}>TAT MONITOR PRO · wsaico.com</span>
+          </div>
         </div>
       </div>
 
@@ -1351,7 +1413,7 @@ function CalcDur({ airlineKey, onLogout }) {
 
   /* ── html2canvas ────────────────────────────────────────────────── */
   const loadH2C = () => new Promise((res, rej) => { if (window.html2canvas) return res(); const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
-  const capture = useCallback(async () => { try { await loadH2C(); const c = await window.html2canvas(capRef.current, { backgroundColor: dark ? "#0F172A" : "#F4F6F9", scale: 2.5, useCORS: true, logging: false }); setOv(c.toDataURL("image/png")); } catch (e) { console.error(e); } }, [dark]);
+  const capture = useCallback(async () => { try { await loadH2C(); const c = await window.html2canvas(capRef.current, { backgroundColor: "#080D1A", scale: 2.5, useCORS: true, logging: false }); setOv(c.toDataURL("image/png")); } catch (e) { console.error(e); } }, []);
   const doShareImg = useCallback(async () => { if (!ov) return; try { const b = await (await fetch(ov)).blob(); const f = new File([b], "TAT.png", { type: "image/png" }); if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: `TAT ${airlineKey}` }); return; } } catch (_) {} Object.assign(document.createElement("a"), { href: ov, download: `TAT_${airlineKey}.png` }).click(); }, [ov, airlineKey]);
 
   /* ── Theme vars ─────────────────────────────────────────────────── */
@@ -1737,39 +1799,89 @@ function CalcDur({ airlineKey, onLogout }) {
       </div>
 
       {/* CAPTURA OFFSCREEN */}
-      <div id="cap-dur" ref={capRef} style={{ background: dark ? "#0F172A" : "#F4F6F9" }}>
-        <div style={{ background: `linear-gradient(160deg,${th.gradA},${th.gradB})`, padding: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-            <div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 800, color: "#fff" }}>{al.name}</div>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</div>
+      <div id="cap-dur" ref={capRef} style={{ width: 390, background: "#080D1A", color: "#F8FAFC", fontFamily: "'Plus Jakarta Sans',sans-serif", overflow: "hidden", borderRadius: 16, border: "1px solid rgba(255,255,255,0.12)" }}>
+        {/* Cabecera oficial con gradiente de aerolínea */}
+        <div style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, padding: "16px 18px 14px", position: "relative" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ background: th.accent, color: "#080D1A", fontSize: 11, fontWeight: 900, padding: "2px 7px", borderRadius: 6, letterSpacing: "1px" }}>{al.code}</span>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{al.name}</div>
+                <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginTop: 2 }}>REPORTE DE OPERACIONES DE RAMPA</div>
+              </div>
             </div>
-            <div style={{ background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 20, padding: "4px 10px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 8.5, fontWeight: 700, color: th.accent }}>
+            <div style={{ background: "rgba(74,222,128,0.18)", border: "1px solid rgba(74,222,128,0.35)", borderRadius: 20, padding: "4px 10px", fontSize: 9.5, fontWeight: 800, color: th.accent, whiteSpace: "nowrap" }}>
               PB: {pbRow.hora}
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
-            {[["CM", cmReal, "#fff"], ["Ent. Vuelo", entRow.hora, th.accent], ["Push Back", pbRow.hora, "#fff"]].map(([l, v, c]) => (
-              <div key={l} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "8px 4px", textAlign: "center" }}>
-                <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 6.5, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", marginBottom: 3 }}>{l}</div>
-                <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 15, fontWeight: 800, color: c }}>{v}</div>
-              </div>
-            ))}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 8.5, color: "rgba(255,255,255,0.45)", fontWeight: 600, borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 6, marginTop: 4 }}>
+            <span>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
+            <span>TAT NOMINAL: <b style={{ color: "#fff" }}>{al.tat || 35} MIN</b></span>
           </div>
         </div>
-        <div style={{ background: dark ? "#0F172A" : "#F4F6F9", padding: "10px 12px 12px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "44px 44px 1fr", gap: 4, padding: "0 6px 4px", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: "7px", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: "#94A3B8" }}>
-            <span style={{ textAlign: "center" }}>DUR.</span><span style={{ textAlign: "center" }}>HORA</span><span>HITO</span>
-          </div>
-          {rows.map((r, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "44px 44px 1fr", gap: 4, alignItems: "center", background: (r.isEnt || r.isPb) ? "#EEF2FF" : "#fff", borderRadius: 6, borderLeft: `3px solid ${r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#F59E0B" : "#E2E8F0"}`, padding: "5px 7px", marginBottom: 3 }}>
-              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#94A3B8", textAlign: "center" }}>{fmtDurMin(r.duracion)}</span>
-              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 800, color: "#64748B", textAlign: "center" }}>{r.hora}</span>
-              <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 9.5, fontWeight: 600, color: "#334155" }}>{r.label}</span>
+
+        {/* 4 Cards de Telemetría Rápida */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, padding: "12px 14px 6px" }}>
+          {[
+            ["CM REAL", cmReal, "#fff", "Llegada"],
+            ["ENTREGA", entRow.hora, th.accent, "Target"],
+            ["CIERRE PTAS", cpRow?.hora || "--:--", "#F59E0B", "Puertas"],
+            ["PUSH BACK", pbRow.hora, "#818CF8", "Salida"],
+          ].map(([l, v, c, sub]) => (
+            <div key={l} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "7px 4px", textAlign: "center" }}>
+              <div style={{ fontSize: 7, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 2 }}>{l}</div>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: c, fontVariantNumeric: "tabular-nums" }}>{v}</div>
+              <div style={{ fontSize: 6.5, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>{sub}</div>
             </div>
           ))}
-          {obs && <div style={{ marginTop: 4, padding: "6px 10px", background: "#fff", borderRadius: 8, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, color: "#475569", borderLeft: "3px solid #CBD5E1" }}>OBS: {obs}</div>}
-          <div style={{ textAlign: "right", marginTop: 6, fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 7.5, color: "#94A3B8" }}>{clComplete ? "CL OK · " : ""}wsaico.com</div>
+        </div>
+
+        {/* Tabla de Hitos en Dark Cockpit */}
+        <div style={{ padding: "6px 14px 14px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "48px 52px 1fr", gap: 4, padding: "0 6px 6px", fontSize: 7.5, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <span style={{ textAlign: "center" }}>DUR.</span>
+            <span style={{ textAlign: "center" }}>HORA</span>
+            <span>HITO OPERATIVO</span>
+          </div>
+          {rows.map((r, i) => {
+            const isHighlight = r.isEnt || r.isPb || r.isCp;
+            const bl = r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#F59E0B" : "rgba(255,255,255,0.15)";
+            const rowBg = r.isEnt
+              ? "rgba(74,222,128,0.08)"
+              : r.isPb
+                ? "rgba(129,140,248,0.08)"
+                : r.isCp
+                  ? "rgba(245,158,11,0.08)"
+                  : "rgba(255,255,255,0.025)";
+            const rowBdr = isHighlight
+              ? `1px solid ${bl}44`
+              : "1px solid rgba(255,255,255,0.04)";
+            const timeCol = r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#FCD34D" : "#FFFFFF";
+            return (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "48px 52px 1fr", gap: 4, alignItems: "center", background: rowBg, borderRadius: 7, borderLeft: `3px solid ${bl}`, borderTop: rowBdr, borderRight: rowBdr, borderBottom: rowBdr, padding: "5px 7px", marginTop: 3 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{fmtDurMin(r.duracion)}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: timeCol, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{r.hora}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: bl, flexShrink: 0 }} />
+                  <span style={{ fontSize: 9.5, fontWeight: isHighlight ? 700 : 500, color: isHighlight ? "#FFFFFF" : "rgba(255,255,255,0.85)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</span>
+                </div>
+              </div>
+            );
+          })}
+
+          {obs && (
+            <div style={{ marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 9.5, color: "rgba(255,255,255,0.75)" }}>
+              <b style={{ color: "rgba(255,255,255,0.45)", fontSize: 8, letterSpacing: "1px" }}>OBSERVACIONES:</b> {obs}
+            </div>
+          )}
+
+          {/* Sello de Auditoría y Footer */}
+          <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 8, fontWeight: 700, color: clComplete ? "#4ADE80" : "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", gap: 4 }}>
+              {clComplete ? "✓ CHECKLIST 100% VERIFICADO" : `CHECKLIST: ${clChecked}/${al.checklist.length}`}
+            </span>
+            <span style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", letterSpacing: "0.5px" }}>TAT MONITOR PRO · wsaico.com</span>
+          </div>
         </div>
       </div>
 
@@ -1892,5 +2004,5 @@ body,#root{background:#03060F;color:#fff;font-family:'Plus Jakarta Sans',sans-se
 .OV-shr{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 0;border-radius:14px;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;}
 .OV-cls{padding:11px 22px;border-radius:28px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,0.45);}
 
-#cap,#cap-dur{position:absolute;left:-9999px;top:0;width:375px;overflow:hidden;}
+#cap,#cap-dur{position:absolute;left:-9999px;top:0;width:390px;overflow:hidden;}
 `;
