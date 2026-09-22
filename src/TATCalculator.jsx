@@ -604,7 +604,20 @@ function Calc({ airlineKey, onLogout }) {
 
   /* ── html2canvas ──────────────────────────────────────────────── */
   const loadH2C = () => new Promise((res, rej) => { if (window.html2canvas) return res(); const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
-  const capture = useCallback(async () => { try { await loadH2C(); const c = await window.html2canvas(capRef.current, { backgroundColor: "#080D1A", scale: 2.5, useCORS: true, logging: false }); setOv(c.toDataURL("image/png")); } catch (e) { console.error(e); } }, []);
+  const capture = useCallback(async () => {
+    try {
+      await loadH2C();
+      const c = await window.html2canvas(capRef.current, {
+        backgroundColor: dark ? "#080D1A" : "#FFFFFF",
+        scale: 2.5,
+        useCORS: true,
+        logging: false
+      });
+      setOv(c.toDataURL("image/png"));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [dark]);
   const doShareImg = useCallback(async () => { if (!ov) return; try { const b = await (await fetch(ov)).blob(); const f = new File([b], "TAT.png", { type: "image/png" }); if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: `TAT ${airlineKey}` }); return; } } catch (_) { } Object.assign(document.createElement("a"), { href: ov, download: `TAT_${airlineKey}.png` }).click(); }, [ov, airlineKey]);
 
   // Theme
@@ -1049,8 +1062,21 @@ function Calc({ airlineKey, onLogout }) {
         </button>
       </div>
 
-      {/* CAPTURE OFFSCREEN */}
-      <div id="cap" ref={capRef} style={{ width: 390, background: "#080D1A", color: "#F8FAFC", fontFamily: "'Plus Jakarta Sans',sans-serif", overflow: "hidden", borderRadius: 16, border: "1px solid rgba(255,255,255,0.12)" }}>
+      {/* CAPTURE OFFSCREEN (Dinámico: Modo Oscuro / Modo Claro) */}
+      <div
+        id="cap"
+        ref={capRef}
+        style={{
+          width: 390,
+          background: dark ? "#080D1A" : "#FFFFFF",
+          color: dark ? "#F8FAFC" : "#0F172A",
+          fontFamily: "'Plus Jakarta Sans',sans-serif",
+          overflow: "hidden",
+          borderRadius: 16,
+          border: dark ? "1px solid rgba(255,255,255,0.12)" : "1px solid #CBD5E1",
+          boxShadow: dark ? "0 20px 40px rgba(0,0,0,0.6)" : "0 10px 30px rgba(0,0,0,0.1)"
+        }}
+      >
         {/* Cabecera oficial con gradiente de aerolínea */}
         <div style={{ background: `linear-gradient(135deg,${th.gradA},${th.gradB})`, padding: "16px 18px 14px", position: "relative" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -1059,7 +1085,7 @@ function Calc({ airlineKey, onLogout }) {
               {isLate ? `DEMORA +${fmtDur(cmDelta)}` : isEarly ? `ADELANTO −${fmtDur(-cmDelta)}` : "A TIEMPO"}
             </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 8.5, color: "rgba(255,255,255,0.45)", fontWeight: 600, borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 6, marginTop: 4 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 8.5, color: "rgba(255,255,255,0.65)", fontWeight: 600, borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 6, marginTop: 4 }}>
             <span>{new Date().toLocaleString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
             <span>TAT NOMINAL: <b style={{ color: "#fff" }}>{al.tat} MIN</b></span>
           </div>
@@ -1068,22 +1094,22 @@ function Calc({ airlineKey, onLogout }) {
         {/* 4 Cards de Telemetría Rápida */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, padding: "12px 14px 6px" }}>
           {[
-            ["CM REAL", cmReal, "#fff", "Llegada"],
-            ["ETD ITIN", etdItin, th.accent, "Itinerario"],
-            ["ENTREGA", entRow.plan, "rgba(255,255,255,0.8)", "Target"],
+            ["CM REAL", cmReal, dark ? "#fff" : "#0F172A", "Llegada"],
+            ["ETD ITIN", etdItin, dark ? th.accent : (th.accent === "#4ADE80" ? "#16A34A" : th.accent), "Itinerario"],
+            ["ENTREGA", entRow.plan, dark ? "rgba(255,255,255,0.8)" : "#334155", "Target"],
             ["PUSH BACK", pbRow.real, SC, "Salida"],
           ].map(([l, v, c, sub]) => (
-            <div key={l} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "7px 4px", textAlign: "center" }}>
-              <div style={{ fontSize: 7, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 2 }}>{l}</div>
+            <div key={l} style={{ background: dark ? "rgba(255,255,255,0.04)" : "#F8FAFC", border: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid #E2E8F0", borderRadius: 10, padding: "7px 4px", textAlign: "center" }}>
+              <div style={{ fontSize: 7, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", color: dark ? "rgba(255,255,255,0.4)" : "#64748B", marginBottom: 2 }}>{l}</div>
               <div style={{ fontSize: 13.5, fontWeight: 800, color: c, fontVariantNumeric: "tabular-nums" }}>{v}</div>
-              <div style={{ fontSize: 6.5, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>{sub}</div>
+              <div style={{ fontSize: 6.5, color: dark ? "rgba(255,255,255,0.25)" : "#94A3B8", marginTop: 1 }}>{sub}</div>
             </div>
           ))}
         </div>
 
-        {/* Tabla de Hitos en Dark Cockpit */}
+        {/* Tabla de Hitos Dinámica */}
         <div style={{ padding: "6px 14px 14px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 42px 42px 42px", gap: 4, padding: "0 6px 6px", fontSize: 7.5, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 42px 42px 42px", gap: 4, padding: "0 6px 6px", fontSize: 7.5, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: dark ? "rgba(255,255,255,0.38)" : "#64748B", borderBottom: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid #E2E8F0" }}>
             <span>HITO OPERATIVO</span>
             <span style={{ textAlign: "center" }}>PLAN</span>
             <span style={{ textAlign: "center" }}>REAL</span>
@@ -1091,55 +1117,86 @@ function Calc({ airlineKey, onLogout }) {
           </div>
           {rows.map((r, i) => {
             const lt = r.diff > 0, el = r.diff < 0;
-            const dc = lt ? "#EF4444" : el ? "#4ADE80" : "rgba(255,255,255,0.4)";
+            const dc = lt ? "#EF4444" : el ? (dark ? "#4ADE80" : "#16A34A") : (dark ? "rgba(255,255,255,0.4)" : "#94A3B8");
             const ds = r.diff === 0 ? "00:00" : lt ? `+${fmt(r.diff)}` : `−${fmt(-r.diff)}`;
             const isHighlight = r.isEnt || r.isPb || r.isCp;
-            const bl = r.isEnt ? th.accent : r.isPb ? "#818CF8" : r.isCp ? "#F59E0B" : lt ? "#EF4444" : el ? "#4ADE80" : "rgba(255,255,255,0.15)";
-            const rowBg = r.isEnt
-              ? "rgba(74,222,128,0.08)"
+            const bl = r.isEnt
+              ? (dark ? th.accent : "#16A34A")
               : r.isPb
-                ? "rgba(129,140,248,0.08)"
+                ? (dark ? "#818CF8" : "#4F46E5")
                 : r.isCp
-                  ? "rgba(245,158,11,0.08)"
+                  ? (dark ? "#F59E0B" : "#D97706")
                   : lt
-                    ? "rgba(239,68,68,0.05)"
+                    ? "#EF4444"
                     : el
-                      ? "rgba(74,222,128,0.04)"
-                      : "rgba(255,255,255,0.025)";
-            const rowBdr = isHighlight
-              ? `1px solid ${bl}44`
-              : "1px solid rgba(255,255,255,0.04)";
+                      ? (dark ? "#4ADE80" : "#16A34A")
+                      : (dark ? "rgba(255,255,255,0.15)" : "#CBD5E1");
+
+            const rowBg = dark
+              ? (r.isEnt
+                  ? "rgba(74,222,128,0.08)"
+                  : r.isPb
+                    ? "rgba(129,140,248,0.08)"
+                    : r.isCp
+                      ? "rgba(245,158,11,0.08)"
+                      : lt
+                        ? "rgba(239,68,68,0.05)"
+                        : el
+                          ? "rgba(74,222,128,0.04)"
+                          : "rgba(255,255,255,0.025)")
+              : (r.isEnt
+                  ? "#F0FDF4"
+                  : r.isPb
+                    ? "#EEF2FF"
+                    : r.isCp
+                      ? "#FFFBEB"
+                      : lt
+                        ? "#FEF2F2"
+                        : el
+                          ? "#F0FDF4"
+                          : "#F8FAFC");
+
+            const rowBdr = dark
+              ? (isHighlight ? `1px solid ${bl}44` : "1px solid rgba(255,255,255,0.04)")
+              : (isHighlight ? `1px solid ${bl}55` : "1px solid #E2E8F0");
+
+            const labelColor = dark
+              ? (isHighlight ? "#FFFFFF" : "rgba(255,255,255,0.85)")
+              : (isHighlight ? "#0F172A" : "#334155");
+
+            const realColor = lt ? "#EF4444" : el ? (dark ? "#4ADE80" : "#16A34A") : (dark ? "#FFFFFF" : "#0F172A");
+
             return (
               <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 42px 42px 42px", gap: 4, alignItems: "center", background: rowBg, borderRadius: 7, borderLeft: `3px solid ${bl}`, borderTop: rowBdr, borderRight: rowBdr, borderBottom: rowBdr, padding: "5px 7px", marginTop: 3 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0 }}>
                   <span style={{ width: 5, height: 5, borderRadius: "50%", background: bl, flexShrink: 0 }} />
-                  <span style={{ fontSize: 9.5, fontWeight: isHighlight ? 700 : 500, color: isHighlight ? "#FFFFFF" : "rgba(255,255,255,0.85)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</span>
+                  <span style={{ fontSize: 9.5, fontWeight: isHighlight ? 700 : 500, color: labelColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</span>
                 </div>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.45)", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{r.plan}</span>
-                <span style={{ fontSize: 10.5, fontWeight: 800, color: lt ? "#EF4444" : el ? "#4ADE80" : "#FFFFFF", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{r.real}</span>
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: dark ? "rgba(255,255,255,0.45)" : "#64748B", textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{r.plan}</span>
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: realColor, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{r.real}</span>
                 <span style={{ fontSize: 10, fontWeight: 700, color: dc, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{ds}</span>
               </div>
             );
           })}
 
           {penalty && (
-            <div style={{ marginTop: 8, padding: "6px 10px", background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 8, fontSize: 9.5, fontWeight: 700, color: "#F59E0B" }}>
+            <div style={{ marginTop: 8, padding: "6px 10px", background: dark ? "rgba(245,158,11,0.15)" : "#FEF3C7", border: dark ? "1px solid rgba(245,158,11,0.3)" : "1px solid #FCD34D", borderRadius: 8, fontSize: 9.5, fontWeight: 700, color: dark ? "#F59E0B" : "#B45309" }}>
               PENALIDAD ESTIMADA: USD {penalty} ({fmtDur(cmDelta)} demora)
             </div>
           )}
 
           {obs && (
-            <div style={{ marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 9.5, color: "rgba(255,255,255,0.75)" }}>
-              <b style={{ color: "rgba(255,255,255,0.45)", fontSize: 8, letterSpacing: "1px" }}>OBSERVACIONES:</b> {obs}
+            <div style={{ marginTop: 6, padding: "6px 10px", background: dark ? "rgba(255,255,255,0.04)" : "#F8FAFC", border: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid #E2E8F0", borderRadius: 8, fontSize: 9.5, color: dark ? "rgba(255,255,255,0.75)" : "#334155" }}>
+              <b style={{ color: dark ? "rgba(255,255,255,0.45)" : "#64748B", fontSize: 8, letterSpacing: "1px" }}>OBSERVACIONES:</b> {obs}
             </div>
           )}
 
           {/* Sello de Auditoría y Footer */}
-          <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 8, fontWeight: 700, color: clComplete ? "#4ADE80" : "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ marginTop: 8, paddingTop: 6, borderTop: dark ? "1px solid rgba(255,255,255,0.08)" : "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 8, fontWeight: 700, color: clComplete ? (dark ? "#4ADE80" : "#16A34A") : (dark ? "rgba(255,255,255,0.35)" : "#94A3B8"), display: "flex", alignItems: "center", gap: 4 }}>
               {clComplete ? "✓ CHECKLIST 100% VERIFICADO" : `CHECKLIST: ${clChecked}/${al.checklist.length}`}
             </span>
-            <span style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", letterSpacing: "0.5px" }}>TAT MONITOR PRO · wsaico.com</span>
+            <span style={{ fontSize: 7.5, color: dark ? "rgba(255,255,255,0.35)" : "#94A3B8", letterSpacing: "0.5px" }}>TAT MONITOR PRO · wsaico.com</span>
           </div>
         </div>
       </div>
