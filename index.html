@@ -1,20 +1,30 @@
 <!doctype html>
-<html lang="es" style="background:#03060F;color:#fff;">
+<html lang="es" style="background:#060A14;color:#fff;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0A0F1D" />
+    <meta name="description" content="TAT Calculator Pro — Sistema inteligente de control y cálculo operacional de tiempos TAT." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-touch-fullscreen" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="TAT Monitor" />
+    <meta name="apple-mobile-web-app-title" content="TAT Pro" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <title>TAT Calculator Pro</title>
   </head>
-  <body style="margin:0;padding:0;background:#03060F;color:#fff;min-height:100vh;">
+  <body style="margin:0;padding:0;background:#060A14;color:#fff;min-height:100vh;">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
